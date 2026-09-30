@@ -9,9 +9,11 @@ import type { ClientService, ClientServicePayment } from '../../types';
 import { Timestamp } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { DollarSign } from 'lucide-react';
+import { getLocalDateString } from '../../utils/date';
 
 interface PaymentFormProps {
   service: ClientService;
+  payment?: ClientServicePayment | null;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -23,7 +25,7 @@ interface FormData {
   notes?: string;
 }
 
-export const PaymentForm = ({ service, onSuccess, onCancel }: PaymentFormProps) => {
+export const PaymentForm = ({ service, payment, onSuccess, onCancel }: PaymentFormProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -33,13 +35,24 @@ export const PaymentForm = ({ service, onSuccess, onCancel }: PaymentFormProps) 
     watch,
     formState: { errors }
   } = useForm<FormData>({
-    defaultValues: {
-      date: new Date().toISOString().split('T')[0],
-      paymentMethod: 'efectivo'
-    }
+    defaultValues: payment
+      ? {
+          amount: payment.amount,
+          paymentMethod: payment.paymentMethod,
+          date: getLocalDateString(new Date(payment.date.toMillis())),
+          notes: payment.notes || ''
+        }
+      : {
+          date: getLocalDateString(),
+          paymentMethod: 'efectivo'
+        }
   });
 
   const amount = watch('amount');
+
+  // Calcular el saldo disponible para validación
+  const oldPaymentAmount = payment ? payment.amount : 0;
+  const availableBalance = service.balance + oldPaymentAmount;
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
@@ -48,54 +61,102 @@ export const PaymentForm = ({ service, onSuccess, onCancel }: PaymentFormProps) 
     try {
       const paymentAmount = Number(data.amount);
 
-      if (paymentAmount > service.balance) {
-        setError(`El monto no puede ser mayor al saldo pendiente ($${service.balance.toLocaleString()})`);
-        setLoading(false);
-        return;
-      }
-
       if (paymentAmount <= 0) {
         setError('El monto debe ser mayor a 0');
         setLoading(false);
         return;
       }
 
-      const paymentDate = new Date(data.date + 'T00:00:00');
+      // Calcular el saldo disponible considerando si estamos editando
+      const oldPaymentAmount = payment ? payment.amount : 0;
+      const availableBalance = service.balance + oldPaymentAmount;
 
-      const newPayment: ClientServicePayment = {
-        id: `payment-${Date.now()}`,
-        amount: paymentAmount,
-        paymentMethod: data.paymentMethod,
-        date: Timestamp.fromDate(paymentDate),
-        notes: data.notes || ''
-      };
-
-      const updatedTotalPaid = service.totalPaid + paymentAmount;
-      const updatedBalance = service.totalPrice - updatedTotalPaid;
-
-      let newStatus: 'pendiente' | 'parcial' | 'pagado' = 'pendiente';
-      if (updatedBalance === 0) {
-        newStatus = 'pagado';
-      } else if (updatedTotalPaid > 0) {
-        newStatus = 'parcial';
+      if (paymentAmount > availableBalance) {
+        setError(`El monto no puede ser mayor al saldo disponible ($${availableBalance.toLocaleString()})`);
+        setLoading(false);
+        return;
       }
 
-      const updatedService = {
-        ...service,
-        payments: [...service.payments, newPayment],
-        totalPaid: updatedTotalPaid,
-        balance: updatedBalance,
-        status: newStatus
-      };
+      const paymentDate = new Date(data.date + 'T00:00:00');
 
-      const { error: updateError } = await updateDocument('clientServices', service.id, updatedService);
+      if (payment) {
+        // Editar abono existente
+        const updatedPayment: ClientServicePayment = {
+          ...payment,
+          amount: paymentAmount,
+          paymentMethod: data.paymentMethod,
+          date: Timestamp.fromDate(paymentDate),
+          notes: data.notes || ''
+        };
 
-      if (updateError) {
-        setError(updateError);
-        toast.error('Error al registrar el abono');
+        // Actualizar el array de pagos
+        const updatedPayments = service.payments.map(p => 
+          p.id === payment.id ? updatedPayment : p
+        );
+
+        // Recalcular totales
+        const updatedTotalPaid = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
+        const updatedBalance = service.totalPrice - updatedTotalPaid;
+
+        let newStatus: 'pendiente' | 'parcial' | 'abonado' = 'pendiente';
+        if (updatedBalance === 0) {
+          newStatus = 'abonado';
+        } else if (updatedTotalPaid > 0) {
+          newStatus = 'parcial';
+        }
+
+        const updatedService = {
+          payments: updatedPayments,
+          totalPaid: updatedTotalPaid,
+          balance: updatedBalance,
+          status: newStatus
+        };
+
+        const { error: updateError } = await updateDocument('clientServices', service.id, updatedService);
+
+        if (updateError) {
+          setError(updateError);
+          toast.error('Error al actualizar el abono');
+        } else {
+          toast.success(`Abono actualizado exitosamente`);
+          onSuccess();
+        }
       } else {
-        toast.success(`Abono de $${paymentAmount.toLocaleString()} registrado exitosamente`);
-        onSuccess();
+        // Crear nuevo abono
+        const newPayment: ClientServicePayment = {
+          id: `payment-${Date.now()}`,
+          amount: paymentAmount,
+          paymentMethod: data.paymentMethod,
+          date: Timestamp.fromDate(paymentDate),
+          notes: data.notes || ''
+        };
+
+        const updatedTotalPaid = service.totalPaid + paymentAmount;
+        const updatedBalance = service.totalPrice - updatedTotalPaid;
+
+        let newStatus: 'pendiente' | 'parcial' | 'abonado' = 'pendiente';
+        if (updatedBalance === 0) {
+          newStatus = 'abonado';
+        } else if (updatedTotalPaid > 0) {
+          newStatus = 'parcial';
+        }
+
+        const updatedService = {
+          payments: [...service.payments, newPayment],
+          totalPaid: updatedTotalPaid,
+          balance: updatedBalance,
+          status: newStatus
+        };
+
+        const { error: updateError } = await updateDocument('clientServices', service.id, updatedService);
+
+        if (updateError) {
+          setError(updateError);
+          toast.error('Error al registrar el abono');
+        } else {
+          toast.success(`Abono de $${paymentAmount.toLocaleString()} registrado exitosamente`);
+          onSuccess();
+        }
       }
     } catch (err) {
       setError('Error inesperado. Por favor, intenta nuevamente.');
@@ -111,25 +172,25 @@ export const PaymentForm = ({ service, onSuccess, onCancel }: PaymentFormProps) 
 
       {/* Service Info */}
       <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl space-y-2">
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 break-words">
           Servicio: <span className="text-blue-600 dark:text-blue-400">{service.serviceName}</span>
         </p>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600 dark:text-gray-400">Total:</span>
-          <span className="font-bold text-gray-900 dark:text-white">
+        <div className="flex items-center justify-between text-sm gap-2">
+          <span className="text-gray-600 dark:text-gray-400 whitespace-nowrap">Total:</span>
+          <span className="font-bold text-gray-900 dark:text-white break-all text-right">
             ${service.totalPrice.toLocaleString()}
           </span>
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600 dark:text-gray-400">Pagado:</span>
-          <span className="font-bold text-green-600 dark:text-green-400">
+        <div className="flex items-center justify-between text-sm gap-2">
+          <span className="text-gray-600 dark:text-gray-400 whitespace-nowrap">Abonado:</span>
+          <span className="font-bold text-green-600 dark:text-green-400 break-all text-right">
             ${service.totalPaid.toLocaleString()}
           </span>
         </div>
-        <div className="flex items-center justify-between text-sm pt-2 border-t border-blue-200 dark:border-blue-800">
-          <span className="text-gray-600 dark:text-gray-400">Saldo Pendiente:</span>
-          <span className="font-bold text-orange-600 dark:text-orange-400 text-lg">
-            ${service.balance.toLocaleString()}
+        <div className="flex items-center justify-between text-sm pt-2 border-t border-blue-200 dark:border-blue-800 gap-2">
+          <span className="text-gray-600 dark:text-gray-400 whitespace-nowrap">Saldo {payment ? 'Disponible' : 'Pendiente'}:</span>
+          <span className="font-bold text-orange-600 dark:text-orange-400 text-base break-all text-right">
+            ${availableBalance.toLocaleString()}
           </span>
         </div>
       </div>
@@ -146,19 +207,19 @@ export const PaymentForm = ({ service, onSuccess, onCancel }: PaymentFormProps) 
             message: 'El monto debe ser mayor a 0'
           },
           max: {
-            value: service.balance,
-            message: `El monto no puede ser mayor a $${service.balance.toLocaleString()}`
+            value: availableBalance,
+            message: `El monto no puede ser mayor a $${availableBalance.toLocaleString()}`
           }
         })}
       />
 
       {/* Preview de nuevo saldo */}
-      {amount && Number(amount) > 0 && Number(amount) <= service.balance && (
+      {amount && Number(amount) > 0 && Number(amount) <= availableBalance && (
         <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
           <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
             <DollarSign className="w-4 h-4" />
             <span>
-              Nuevo saldo: ${(service.balance - Number(amount)).toLocaleString()}
+              Nuevo saldo: ${(availableBalance - Number(amount)).toLocaleString()}
             </span>
           </div>
         </div>
@@ -199,7 +260,7 @@ export const PaymentForm = ({ service, onSuccess, onCancel }: PaymentFormProps) 
           Cancelar
         </Button>
         <Button type="submit" loading={loading}>
-          Registrar Abono
+          {payment ? 'Actualizar Abono' : 'Registrar Abono'}
         </Button>
       </div>
     </form>

@@ -201,12 +201,13 @@ export const Payments = () => {
                           </h3>
                           <Badge
                             variant={
-                              apt.paymentStatus === 'pagado' ? 'success' :
+                              apt.paymentStatus === 'abonado' ? 'success' :
                               apt.paymentStatus === 'parcial' ? 'warning' : 'error'
                             }
                             className="text-xs"
                           >
-                            {apt.paymentStatus}
+                            {apt.paymentStatus === 'abonado' ? 'Abonado' :
+                             apt.paymentStatus === 'parcial' ? 'Parcial' : 'Pendiente'}
                           </Badge>
                         </div>
                         
@@ -233,7 +234,7 @@ export const Payments = () => {
                           ${apt.price.toLocaleString()}
                         </div>
                         <div className="text-sm text-green-600 dark:text-green-400">
-                          Pagado: ${apt.paid.toLocaleString()}
+                          Abonado: ${apt.paid.toLocaleString()}
                         </div>
                         {apt.price > apt.paid && (
                           <div className="text-sm text-orange-600 dark:text-orange-400 font-medium">

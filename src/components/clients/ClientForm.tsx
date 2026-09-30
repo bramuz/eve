@@ -16,7 +16,6 @@ interface ClientFormProps {
 
 interface FormData {
   name: string;
-  phone: string;
 }
 
 export const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
@@ -31,8 +30,7 @@ export const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => 
   } = useForm<FormData>({
     defaultValues: client
       ? {
-          name: client.name,
-          phone: client.phone
+          name: client.name
         }
       : undefined
   });
@@ -94,16 +92,6 @@ export const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => 
             value: 3,
             message: 'El nombre debe tener al menos 3 caracteres'
           }
-        })}
-      />
-
-      <Input
-        label="Teléfono *"
-        type="tel"
-        placeholder="300 123 4567"
-        error={errors.phone?.message}
-        {...register('phone', {
-          required: 'El teléfono es requerido'
         })}
       />
 

@@ -12,10 +12,26 @@ import { Badge } from '../components/ui/Badge';
 import { Loading } from '../components/ui/Loading';
 import { useAuth } from '../context/AuthContext';
 import { getDocuments, where } from '../firebase/firestore';
-import type { Appointment, ClientService } from '../types';
-import { format, isToday, startOfMonth, endOfMonth } from 'date-fns';
+import type { Appointment, ClientService, ClientPayment } from '../types';
+import { format, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
+
+const toDateSafe = (value: unknown): Date | null => {
+  if (!value) return null;
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (typeof value === 'object' && value !== null && 'toDate' in value && typeof (value as { toDate: () => Date }).toDate === 'function') {
+    const date = (value as { toDate: () => Date }).toDate();
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const parsed = new Date(value as string | number);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
 
 export const Dashboard = () => {
   const { currentUser } = useAuth();
@@ -67,8 +83,17 @@ export const Dashboard = () => {
         where('userId', '==', currentUser.uid)
       ]);
 
+      // Get all independent client payments (abonos)
+      const { data: clientPayments, error: paymentsError } = await getDocuments('clientPayments', [
+        where('userId', '==', currentUser.uid)
+      ]);
+
       if (servicesError) {
         console.error('Error al cargar servicios:', servicesError);
+      }
+
+      if (paymentsError) {
+        console.error('Error al cargar abonos de clientes:', paymentsError);
       }
 
       if (!appointments) {
@@ -81,31 +106,38 @@ export const Dashboard = () => {
         isToday(apt.date.toDate())
       );
 
-      // Calculate total pending (all balances)
+      // Calculate total pending from current collections.
       let totalPending = 0;
       if (clientServices) {
-        totalPending = (clientServices as ClientService[]).reduce(
-          (sum, service) => sum + service.balance,
+        const services = clientServices as ClientService[];
+        const totalServicesAmount = services.reduce(
+          (sum, service) => sum + (service.totalPrice || 0),
           0
         );
+
+        const independentPayments = (clientPayments as ClientPayment[] | undefined) || [];
+        const totalIndependentPaid = independentPayments.reduce(
+          (sum, payment) => sum + (payment.amount || 0),
+          0
+        );
+
+        totalPending = Math.max(totalServicesAmount - totalIndependentPaid, 0);
       }
 
-      // Calculate monthly income (all payments from current month)
+      // Calculate monthly income from current payments collection.
       let monthlyIncome = 0;
-      if (clientServices) {
-        const now = new Date();
-        const monthStart = startOfMonth(now);
-        const monthEnd = endOfMonth(now);
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const independentPayments = (clientPayments as ClientPayment[] | undefined) || [];
 
-        (clientServices as ClientService[]).forEach(service => {
-          service.payments.forEach(payment => {
-            const paymentDate = payment.date.toDate();
-            if (paymentDate >= monthStart && paymentDate <= monthEnd) {
-              monthlyIncome += payment.amount;
-            }
-          });
-        });
-      }
+      independentPayments.forEach((payment) => {
+        const paymentDate = toDateSafe(payment.date);
+        if (!paymentDate) return;
+        if (paymentDate.getFullYear() === currentYear && paymentDate.getMonth() === currentMonth) {
+          monthlyIncome += payment.amount || 0;
+        }
+      });
 
       setStats({
         todayAppointments: todayAppts.length,
@@ -204,7 +236,10 @@ export const Dashboard = () => {
             </div>
           </Card>
 
-          <Card className="p-4 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 border-green-300 dark:border-green-700 hover:shadow-xl transition-all">
+          <Card
+            className="p-4 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 border-green-300 dark:border-green-700 hover:shadow-xl transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => navigate('/income-dashboard')}
+          >
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs text-green-700 dark:text-green-300 font-semibold mb-1.5 uppercase tracking-wide">
@@ -244,12 +279,13 @@ export const Dashboard = () => {
                         </Badge>
                         <Badge
                           variant={
-                            apt.paymentStatus === 'pagado' ? 'success' :
+                            apt.paymentStatus === 'abonado' ? 'success' :
                             apt.paymentStatus === 'parcial' ? 'warning' : 'error'
                           }
                           className="text-xs"
                         >
-                          {apt.paymentStatus}
+                          {apt.paymentStatus === 'abonado' ? 'Abonado' :
+                           apt.paymentStatus === 'parcial' ? 'Parcial' : 'Pendiente'}
                         </Badge>
                       </div>
                     </div>
@@ -260,7 +296,7 @@ export const Dashboard = () => {
                         </div>
                         {apt.paid > 0 && (
                           <div className="text-xs text-green-600 dark:text-green-400">
-                            Pagado: ${apt.paid.toLocaleString()}
+                            Abonado: ${apt.paid.toLocaleString()}
                           </div>
                         )}
                       </div>

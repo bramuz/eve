@@ -13,8 +13,10 @@ import { ForgotPassword } from './pages/ForgotPassword';
 
 // App Pages
 import { Dashboard } from './pages/Dashboard';
+import { IncomeDashboard } from './pages/IncomeDashboard.tsx';
 import { Appointments } from './pages/Appointments';
 import { Clients } from './pages/Clients';
+import { Notes } from './pages/Notes';
 
 function App() {
   // Hook para detectar y recargar nuevas versiones automáticamente
@@ -64,6 +66,16 @@ function App() {
               }
             />
             <Route
+              path="/income-dashboard"
+              element={
+                <ProtectedRoute>
+                  <MobileLayout>
+                    <IncomeDashboard />
+                  </MobileLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/appointments"
               element={
                 <ProtectedRoute>
@@ -79,6 +91,16 @@ function App() {
                 <ProtectedRoute>
                   <MobileLayout>
                     <Clients />
+                  </MobileLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notes"
+              element={
+                <ProtectedRoute>
+                  <MobileLayout>
+                    <Notes />
                   </MobileLayout>
                 </ProtectedRoute>
               }

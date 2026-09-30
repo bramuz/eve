@@ -8,6 +8,7 @@ import {
   Package,
   ShoppingCart,
   CreditCard,
+  StickyNote,
   Menu,
   X,
   LogOut
@@ -19,6 +20,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: Calendar, label: 'Citas', path: '/appointments' },
   { icon: Users, label: 'Clientes', path: '/clients' },
+  { icon: StickyNote, label: 'Notas', path: '/notes' },
   { icon: Package, label: 'Productos', path: '/products' },
   { icon: ShoppingCart, label: 'Ventas', path: '/sales' },
   { icon: CreditCard, label: 'Pagos', path: '/payments' }

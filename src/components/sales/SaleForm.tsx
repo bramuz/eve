@@ -212,7 +212,7 @@ export const SaleForm = ({ sale, onSuccess, onCancel }: SaleFormProps) => {
           <option value="">Sin cliente</option>
           {clients.map((client) => (
             <option key={client.id} value={client.id}>
-              {client.name} - {client.phone}
+              {client.name}{client.phone ? ` - ${client.phone}` : ''}
             </option>
           ))}
         </select>

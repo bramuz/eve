@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Users, LogOut } from 'lucide-react';
+import { Home, Calendar, Users, LogOut, StickyNote } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface MobileLayoutProps {
@@ -15,6 +15,7 @@ export const MobileLayout = ({ children }: MobileLayoutProps) => {
     { name: 'Inicio', href: '/dashboard', icon: Home },
     { name: 'Citas', href: '/appointments', icon: Calendar },
     { name: 'Clientes', href: '/clients', icon: Users },
+    { name: 'Notas', href: '/notes', icon: StickyNote },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -44,7 +45,7 @@ export const MobileLayout = ({ children }: MobileLayoutProps) => {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-warm-800 border-t border-warm-200 dark:border-warm-700 shadow-2xl z-50 backdrop-blur-lg bg-opacity-95">
-        <div className="grid grid-cols-3 h-16">
+        <div className="grid grid-cols-4 h-16">
           {navigation.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);

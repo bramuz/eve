@@ -14,7 +14,21 @@ export interface User {
 export interface Client {
   id: string;
   name: string;
-  phone: string;
+  phone?: string; // Campo opcional
+  userId: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// Client Payment (independent from services)
+export interface ClientPayment {
+  id: string;
+  clientId: string;
+  clientName: string;
+  amount: number;
+  paymentMethod: 'efectivo' | 'tarjeta' | 'transferencia';
+  date: Timestamp;
+  notes?: string;
   userId: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -38,7 +52,7 @@ export interface ClientService {
   payments: ClientServicePayment[];
   totalPaid: number;
   balance: number;
-  status: 'pendiente' | 'parcial' | 'pagado';
+  status: 'pendiente' | 'parcial' | 'abonado';
   date: Timestamp;
   notes?: string;
   userId: string;
@@ -56,8 +70,8 @@ export interface Appointment {
   time: string;
   // Información de pago
   price: number;
-  paid: number; // Total pagado hasta ahora
-  paymentStatus: 'pendiente' | 'parcial' | 'pagado';
+  paid: number; // Total abonado hasta ahora
+  paymentStatus: 'pendiente' | 'parcial' | 'abonado';
   paymentMethod?: 'efectivo' | 'tarjeta' | 'transferencia';
   notes?: string;
   userId: string;
@@ -130,4 +144,48 @@ export interface DashboardStats {
   upcomingAppointments: Appointment[];
   recentSales: Sale[];
   lowStockProducts: Product[];
+}
+
+// Special Day types
+export interface SpecialDay {
+  id: string;
+  date: Timestamp;
+  label: string; // Ej: "Festivo", "Vacaciones", "Cerrado"
+  color: string; // Color hex para el día (Ej: "#ef4444", "#f59e0b")
+  blockAppointments: boolean; // Si bloquea las citas o no
+  userId: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// Note types
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  color: string; // Color para categorización visual
+  isPinned: boolean; // Notas importantes fijadas al inicio
+  category?: string; // Categoría opcional (Ej: "Personal", "Trabajo", "Ideas")
+  clientId?: string; // Cliente asociado opcional
+  clientName?: string; // Nombre del cliente asociado opcional
+  userId: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// Consent types
+export interface ClientConsent {
+  id: string;
+  clientId: string;
+  clientName: string;
+  procedureName: string;
+  professionalName: string;
+  consentDate: string;
+  clientCedula: string;
+  consentText: string;
+  signatureDataURL: string; // Base64 encoded signature image
+  signedAt: string;
+  userId: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }

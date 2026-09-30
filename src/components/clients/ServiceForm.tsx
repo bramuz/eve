@@ -9,6 +9,7 @@ import { Alert } from '../ui/Alert';
 import type { ClientService } from '../../types';
 import { Timestamp } from 'firebase/firestore';
 import { toast } from 'sonner';
+import { getLocalDateString } from '../../utils/date';
 
 interface ServiceFormProps {
   clientId: string;
@@ -39,11 +40,11 @@ export const ServiceForm = ({ clientId, clientName, service, onSuccess, onCancel
       ? {
           serviceName: service.serviceName,
           totalPrice: service.totalPrice,
-          date: new Date(service.date.toMillis()).toISOString().split('T')[0],
+          date: getLocalDateString(new Date(service.date.toMillis())),
           notes: service.notes || ''
         }
       : {
-          date: new Date().toISOString().split('T')[0]
+          date: getLocalDateString()
         }
   });
 

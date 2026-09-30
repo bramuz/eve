@@ -10,7 +10,7 @@ import { Input } from '../components/ui/Input';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { useAuth } from '../context/AuthContext';
 import { getDocuments, deleteDocument, where } from '../firebase/firestore';
-import type { Client, ClientService } from '../types';
+import type { Client, ClientService, ClientPayment } from '../types';
 import { ClientForm } from '../components/clients/ClientForm';
 import { ClientDetails } from '../components/clients/ClientDetails';
 import { toast } from 'sonner';
@@ -21,6 +21,7 @@ export const Clients = () => {
   const { currentUser } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [clientServices, setClientServices] = useState<ClientService[]>([]);
+  const [clientPayments, setClientPayments] = useState<ClientPayment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -50,11 +51,17 @@ export const Clients = () => {
       where('userId', '==', currentUser.uid)
     ]);
 
+    // Cargar pagos independientes
+    const { data: paymentsData } = await getDocuments('clientPayments', [
+      where('userId', '==', currentUser.uid)
+    ]);
+
     if (clientsError || servicesError) {
       toast.error('Error al cargar los datos');
     } else {
       setClients(clientsData as Client[]);
       setClientServices(servicesData as ClientService[]);
+      setClientPayments((paymentsData || []) as ClientPayment[]); // Usar array vacío si no hay datos
     }
     
     setLoading(false);
@@ -82,7 +89,7 @@ export const Clients = () => {
   };
 
   const confirmDeleteClient = async () => {
-    if (!clientToDelete) return;
+    if (!clientToDelete || !currentUser) return;
 
     try {
       // Eliminar todos los servicios del cliente
@@ -92,6 +99,25 @@ export const Clients = () => {
 
       for (const service of clientServicesToDelete) {
         await deleteDocument('clientServices', service.id);
+      }
+
+      // Eliminar todos los pagos del cliente
+      const clientPaymentsToDelete = clientPayments.filter(
+        payment => payment.clientId === clientToDelete.id
+      );
+
+      for (const payment of clientPaymentsToDelete) {
+        await deleteDocument('clientPayments', payment.id);
+      }
+
+      // Eliminar todas las notas del cliente
+      const { data: clientNotesToDelete } = await getDocuments('notes', [
+        where('clientId', '==', clientToDelete.id),
+        where('userId', '==', currentUser.uid)
+      ]);
+
+      for (const note of (clientNotesToDelete || [])) {
+        await deleteDocument('notes', note.id);
       }
 
       // Eliminar el cliente
@@ -115,10 +141,11 @@ export const Clients = () => {
   // Calcular estadísticas por cliente
   const getClientStats = (clientId: string) => {
     const services = clientServices.filter(service => service.clientId === clientId);
+    const payments = clientPayments.filter(payment => payment.clientId === clientId);
     
     const total = services.reduce((sum, service) => sum + service.totalPrice, 0);
-    const paid = services.reduce((sum, service) => sum + service.totalPaid, 0);
-    const pending = services.reduce((sum, service) => sum + service.balance, 0);
+    const paid = payments.reduce((sum, payment) => sum + payment.amount, 0);
+    const pending = total - paid;
     const lastService = services.length > 0 
       ? services.sort((a, b) => b.date.toMillis() - a.date.toMillis())[0]
       : null;
@@ -129,7 +156,7 @@ export const Clients = () => {
   // Filtrar clientes por búsqueda
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.phone.includes(searchTerm)
+    (client.phone && client.phone.includes(searchTerm))
   );
 
   if (loading) {
@@ -216,21 +243,25 @@ export const Clients = () => {
                           <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
                             {client.name}
                           </h3>
-                          
-                          {/* Delete Button */}
-                          <button
-                            onClick={(e) => handleDeleteClient(client, e)}
-                            className="flex-shrink-0 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
-                            aria-label="Eliminar cliente"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
+
+                          <div className="flex items-center gap-1">
+                            {/* Delete Button */}
+                            <button
+                              onClick={(e) => handleDeleteClient(client, e)}
+                              className="flex-shrink-0 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
+                              aria-label="Eliminar cliente"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
                         </div>
                         
-                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          <Phone className="w-4 h-4" />
-                          <span>{client.phone}</span>
-                        </div>
+                        {client.phone && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            <Phone className="w-4 h-4" />
+                            <span>{client.phone}</span>
+                          </div>
+                        )}
 
                         {stats.lastService && (
                           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -244,14 +275,14 @@ export const Clients = () => {
                         {/* Payment Info */}
                         <div className="flex items-center gap-4 mt-3">
                           <div className="flex items-center gap-1">
-                            <DollarSign className="w-4 h-4 text-green-600" />
-                            <span className="text-sm font-medium text-green-600">
+                            <DollarSign className="w-4 h-4 text-green-600 flex-shrink-0" />
+                            <span className="text-sm font-medium text-green-600 break-all">
                               ${stats.paid.toLocaleString()}
                             </span>
                           </div>
                           
                           {stats.pending > 0 && (
-                            <Badge variant="warning" className="text-xs">
+                            <Badge variant="warning" className="text-xs whitespace-nowrap">
                               Debe: ${stats.pending.toLocaleString()}
                             </Badge>
                           )}

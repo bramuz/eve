@@ -1,19 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
 import { createDocument, updateDocument, Timestamp } from '../../firebase/firestore';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Alert } from '../ui/Alert';
-import type { Appointment } from '../../types';
+import type { Appointment, SpecialDay } from '../../types';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
+import { AlertTriangle, Tag } from 'lucide-react';
 
 interface AppointmentFormProps {
   appointment?: Appointment | null;
   onSuccess: () => void;
   onCancel: () => void;
   selectedDate?: Date;
+  specialDays?: SpecialDay[];
 }
 
 interface FormData {
@@ -27,15 +29,18 @@ export const AppointmentForm = ({
   appointment,
   onSuccess,
   onCancel,
-  selectedDate
+  selectedDate,
+  specialDays = []
 }: AppointmentFormProps) => {
   const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedDateWarning, setSelectedDateWarning] = useState<SpecialDay | null>(null);
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors }
   } = useForm<FormData>({
     defaultValues: appointment
@@ -50,9 +55,29 @@ export const AppointmentForm = ({
         }
   });
 
+  const watchedDate = watch('date');
+
+  useEffect(() => {
+    if (watchedDate) {
+      const selectedDateObj = new Date(`${watchedDate}T00:00:00`);
+      const specialDay = specialDays.find(sd => isSameDay(sd.date.toDate(), selectedDateObj));
+      setSelectedDateWarning(specialDay || null);
+    }
+  }, [watchedDate, specialDays]);
+
   const onSubmit = async (data: FormData) => {
     if (!currentUser) {
       toast.error('No estás autenticado');
+      return;
+    }
+
+    // Validar si la fecha seleccionada es un día bloqueado
+    const selectedDateObj = new Date(`${data.date}T00:00:00`);
+    const specialDay = specialDays.find(sd => isSameDay(sd.date.toDate(), selectedDateObj));
+    
+    if (specialDay?.blockAppointments) {
+      toast.error(`No se pueden agendar citas en este día: ${specialDay.label}`);
+      setError(`Este día está marcado como "${specialDay.label}" y no permite agendar citas.`);
       return;
     }
 
@@ -119,6 +144,38 @@ export const AppointmentForm = ({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && <Alert variant="error">{error}</Alert>}
 
+      {selectedDateWarning && (
+        <div
+          className="p-4 rounded-xl border-2 flex items-start gap-3"
+          style={{
+            backgroundColor: `${selectedDateWarning.color}15`,
+            borderColor: selectedDateWarning.color
+          }}
+        >
+          <div
+            className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: selectedDateWarning.color }}
+          >
+            {selectedDateWarning.blockAppointments ? (
+              <AlertTriangle className="w-5 h-5 text-white" />
+            ) : (
+              <Tag className="w-5 h-5 text-white" />
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-warm-900 dark:text-white mb-1">
+              {selectedDateWarning.blockAppointments ? '¡Atención! Día Bloqueado' : 'Día Especial'}
+            </p>
+            <p className="text-sm text-warm-700 dark:text-warm-300">
+              Este día está marcado como <strong>"{selectedDateWarning.label}"</strong>
+              {selectedDateWarning.blockAppointments
+                ? ' y no permite agendar citas. Por favor selecciona otra fecha.'
+                : '. Ten en cuenta esta información al agendar.'}
+            </p>
+          </div>
+        </div>
+      )}
+
       <Input
         label="Nombre del Cliente"
         placeholder="Ej: Juan Pérez"
@@ -157,7 +214,11 @@ export const AppointmentForm = ({
         <Button type="button" variant="outline" onClick={onCancel} className="h-12">
           Cancelar
         </Button>
-        <Button type="submit" disabled={loading} className="h-12">
+        <Button
+          type="submit"
+          disabled={loading || (selectedDateWarning?.blockAppointments ?? false)}
+          className="h-12"
+        >
           {loading ? 'Guardando...' : appointment ? 'Actualizar' : 'Crear Cita'}
         </Button>
       </div>
