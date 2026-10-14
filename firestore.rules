@@ -1,64 +1,138 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function ownsDocument() {
+      return signedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    function createsOwnDocument() {
+      return signedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    function updatesOwnDocument() {
+      return ownsDocument()
+        && request.resource.data.userId == resource.data.userId;
+    }
+
+    function ownsClient(clientId) {
+      return signedIn()
+        && clientId is string
+        && exists(/databases/$(database)/documents/clients/$(clientId))
+        && get(/databases/$(database)/documents/clients/$(clientId)).data.userId == request.auth.uid;
+    }
+
     match /appointments/{appointmentId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if ownsDocument();
+      allow create: if createsOwnDocument();
+      allow update: if updatesOwnDocument();
+      allow delete: if ownsDocument();
     }
-    
+
     match /clients/{clientId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if ownsDocument();
+      allow create: if createsOwnDocument();
+      allow update: if updatesOwnDocument();
+      allow delete: if ownsDocument();
     }
-    
+
     match /clientServices/{serviceId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if ownsDocument();
+      allow create: if createsOwnDocument();
+      allow update: if updatesOwnDocument();
+      allow delete: if ownsDocument();
     }
-    
+
     match /clientPayments/{paymentId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if ownsDocument();
+      allow create: if createsOwnDocument();
+      allow update: if updatesOwnDocument();
+      allow delete: if ownsDocument();
     }
-    
+
     match /payments/{paymentId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if ownsDocument();
+      allow create: if createsOwnDocument();
+      allow update: if updatesOwnDocument();
+      allow delete: if ownsDocument();
     }
-    
+
     match /products/{productId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if ownsDocument();
+      allow create: if createsOwnDocument();
+      allow update: if updatesOwnDocument();
+      allow delete: if ownsDocument();
     }
-    
+
     match /sales/{saleId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if ownsDocument();
+      allow create: if createsOwnDocument();
+      allow update: if updatesOwnDocument();
+      allow delete: if ownsDocument();
     }
-    
+
     match /specialDays/{specialDayId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if ownsDocument();
+      allow create: if createsOwnDocument();
+      allow update: if updatesOwnDocument();
+      allow delete: if ownsDocument();
     }
-    
+
     match /notes/{noteId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if ownsDocument();
+      allow create: if createsOwnDocument();
+      allow update: if updatesOwnDocument();
+      allow delete: if ownsDocument();
     }
-    
+
     match /clientConsents/{consentId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if ownsDocument();
+      allow create: if createsOwnDocument();
+      allow update: if updatesOwnDocument();
+      allow delete: if ownsDocument();
+    }
+
+    match /clientPhotos/{photoId} {
+      allow read: if ownsDocument();
+      allow create: if createsOwnDocument()
+        && ownsClient(request.resource.data.clientId)
+        && request.resource.data.keys().hasAll([
+          'userId', 'clientId', 'clientName', 'imageUrl', 'storagePath',
+          'date', 'notes', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'userId', 'clientId', 'clientName', 'imageUrl', 'storagePath',
+          'date', 'notes', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.clientName is string
+        && request.resource.data.clientName.size() <= 200
+        && request.resource.data.imageUrl is string
+        && request.resource.data.imageUrl.size() <= 2048
+        && request.resource.data.storagePath is string
+        && request.resource.data.storagePath.matches(
+          'client-photos/' + request.auth.uid + '/' + request.resource.data.clientId + '/.*'
+        )
+        && request.resource.data.date is timestamp
+        && request.resource.data.notes is string
+        && request.resource.data.notes.size() <= 500
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+      allow update: if ownsDocument()
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.clientId == resource.data.clientId
+        && request.resource.data.imageUrl == resource.data.imageUrl
+        && request.resource.data.storagePath == resource.data.storagePath
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'date', 'notes', 'updatedAt'
+        ])
+        && request.resource.data.date is timestamp
+        && request.resource.data.notes is string
+        && request.resource.data.notes.size() <= 500
+        && request.resource.data.updatedAt is timestamp;
+      allow delete: if ownsDocument();
     }
   }
 }

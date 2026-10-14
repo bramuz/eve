@@ -1,0 +1,26 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function ownsUserFolder(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function validImageUpload() {
+      return request.resource != null
+        && request.resource.size > 0
+        && request.resource.size <= 10 * 1024 * 1024
+        && request.resource.contentType is string
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /client-photos/{userId}/{clientId}/{fileName} {
+      allow read: if ownsUserFolder(userId);
+      allow create, update: if ownsUserFolder(userId) && validImageUpload();
+      allow delete: if ownsUserFolder(userId);
+    }
+  }
+}

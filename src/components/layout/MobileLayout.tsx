@@ -25,7 +25,7 @@ export const MobileLayout = ({ children }: MobileLayoutProps) => {
       {/* Header */}
       <header className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-4 py-4 shadow-xl flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Eve</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Stetik</h1>
           <p className="text-xs text-primary-100 opacity-90">Tu asistente personal</p>
         </div>
         <button

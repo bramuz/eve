@@ -173,7 +173,7 @@ export const Dashboard = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-warm-900 dark:text-white mb-1">
-            ¡Hola! 👋
+            ¡Hola, {currentUser?.displayName || 'bienvenido'}!
           </h1>
           <p className="text-sm text-warm-600 dark:text-warm-400">
             {format(new Date(), "EEEE, d 'de' MMMM yyyy", { locale: es })}

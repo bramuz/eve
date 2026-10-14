@@ -84,10 +84,10 @@ export const Register = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Eve
+            Stetik
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Comienza a gestionar tu negocio hoy
+            Tu espacio personalizado para gestionar tu negocio
           </p>
         </div>
 
@@ -105,9 +105,10 @@ export const Register = () => {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
-              label="Nombre completo"
+              label="Tu nombre completo"
               type="text"
-              placeholder="Juan Pérez"
+              placeholder="¿Cómo te llamas?"
+              helperText="Lo usaremos para personalizar tu espacio de trabajo."
               icon={<User className="w-5 h-5" />}
               error={errors.name?.message}
               {...register('name', {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, DollarSign, Calendar, CreditCard, Trash2, Edit2, StickyNote, Pin, FileText, CheckCircle } from 'lucide-react';
+import { Plus, DollarSign, Calendar, CreditCard, Trash2, Edit2, StickyNote, Pin, FileText, CheckCircle, Images } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -13,6 +13,7 @@ import { ClientPaymentForm } from './ClientPaymentForm';
 import { NoteForm } from '../notes/NoteForm';
 import { ConsentForm } from './ConsentForm';
 import { ConsentList } from './ConsentList';
+import { ClientPhotos } from './ClientPhotos';
 import type { Client, ClientService, ClientPayment, Note, ClientConsent } from '../../types';
 import { getDocuments, where, deleteDocument, createDocument, updateDocument } from '../../firebase/firestore';
 import { Timestamp } from 'firebase/firestore';
@@ -36,6 +37,7 @@ export const ClientDetails = ({ client, onClose, onUpdate }: ClientDetailsProps)
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showClientNotesModal, setShowClientNotesModal] = useState(false);
+  const [showClientPhotosModal, setShowClientPhotosModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [selectedService, setSelectedService] = useState<ClientService | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<ClientPayment | null>(null);
@@ -373,6 +375,14 @@ export const ClientDetails = ({ client, onClose, onUpdate }: ClientDetailsProps)
           >
             <StickyNote className="w-5 h-5 mr-2" />
             Notas ({clientNotes.length})
+          </Button>
+          <Button
+            onClick={() => setShowClientPhotosModal(true)}
+            variant="outline"
+            className="flex-1 min-w-fit"
+          >
+            <Images className="w-5 h-5 mr-2" />
+            Fotos
           </Button>
           <Button
             onClick={() => setShowConsentListModal(true)}
@@ -819,6 +829,16 @@ export const ClientDetails = ({ client, onClose, onUpdate }: ClientDetailsProps)
           clientName={client.name}
           onClose={() => setShowConsentListModal(false)}
         />
+      </Modal>
+
+      {/* Client Photos Modal */}
+      <Modal
+        isOpen={showClientPhotosModal}
+        onClose={() => setShowClientPhotosModal(false)}
+        title={`Fotos de ${client.name}`}
+        size="xl"
+      >
+        <ClientPhotos client={client} />
       </Modal>
     </div>
   );

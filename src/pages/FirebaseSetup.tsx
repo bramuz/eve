@@ -14,7 +14,7 @@ export const FirebaseSetup = () => {
             Firebase no configurado
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Para usar la aplicación Eve, necesitas configurar Firebase
+            Para usar la aplicación Stetik, necesitas configurar Firebase
           </p>
         </div>
 

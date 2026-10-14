@@ -13,6 +13,8 @@ import { getDocuments, deleteDocument, where } from '../firebase/firestore';
 import type { Client, ClientService, ClientPayment } from '../types';
 import { ClientForm } from '../components/clients/ClientForm';
 import { ClientDetails } from '../components/clients/ClientDetails';
+import { deleteObject, ref } from 'firebase/storage';
+import { storage } from '../firebase/config';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -118,6 +120,22 @@ export const Clients = () => {
 
       for (const note of (clientNotesToDelete || [])) {
         await deleteDocument('notes', note.id);
+      }
+
+      const { data: clientPhotos, error: photosError } = await getDocuments('clientPhotos', [
+        where('clientId', '==', clientToDelete.id),
+        where('userId', '==', currentUser.uid)
+      ]);
+
+      if (photosError) throw new Error(photosError);
+      for (const photo of clientPhotos || []) {
+        if (!('storagePath' in photo) || typeof photo.storagePath !== 'string') {
+          throw new Error('No se encontró la ruta de una foto del cliente');
+        }
+        const storagePath = photo.storagePath;
+        await deleteObject(ref(storage, storagePath));
+        const { error: photoDeleteError } = await deleteDocument('clientPhotos', photo.id);
+        if (photoDeleteError) throw new Error(photoDeleteError);
       }
 
       // Eliminar el cliente
