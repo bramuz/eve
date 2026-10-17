@@ -80,7 +80,7 @@ export const AppointmentForm = ({
     const specialDay = specialDays.find(sd => isSameDay(sd.date.toDate(), selectedDateObj));
 
     if (!canScheduleOn(selectedDateObj)) {
-      setError('El plan gratis solo permite agendar citas en la semana en curso.');
+      setError('El plan gratis solo permite agendar citas hasta 7 días desde hoy.');
       return;
     }
     
@@ -155,7 +155,7 @@ export const AppointmentForm = ({
 
       {outsideFreeWeek && (
         <Alert variant="warning">
-          El plan gratis solo permite agendar en la semana en curso.{' '}
+          El plan gratis solo permite agendar hasta 7 días desde hoy.{' '}
           <Link to="/plans" className="font-semibold underline">
             Pásate a Premium
           </Link>{' '}
@@ -205,7 +205,7 @@ export const AppointmentForm = ({
 
       <Input
         label="Procedimiento/Servicio"
-        placeholder="Ej: Corte de cabello, Manicure, Tatuaje"
+        placeholder="Ej: Botox, Limpieza facial, Peeling"
         error={errors.service?.message}
         {...register('service', { required: 'El procedimiento es requerido' })}
         className="h-12 text-base"

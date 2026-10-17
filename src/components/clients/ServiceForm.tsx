@@ -114,7 +114,7 @@ export const ServiceForm = ({ clientId, clientName, service, onSuccess, onCancel
 
       <Input
         label="Nombre del Procedimiento *"
-        placeholder="Corte de cabello, Manicure, Tatuaje..."
+        placeholder="Ej: Botox, Limpieza facial, Peeling..."
         error={errors.serviceName?.message}
         {...register('serviceName', {
           required: 'El nombre del procedimiento es requerido',

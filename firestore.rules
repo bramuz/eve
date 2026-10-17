@@ -45,12 +45,11 @@ service cloud.firestore {
         || get(userPath()).data.get('clientCount', 0) < 5;
     }
 
-    // Semana Lunes-Domingo en hora de Colombia (UTC-5). Citas guardadas a medianoche local.
+    // Hoy + 7 días en hora de Colombia (UTC-5). Citas guardadas a medianoche local.
     function freeWeekLimit() {
       let local = request.time - duration.value(5, 'h');
-      let daysToNextMonday = 8 - local.dayOfWeek();
       let localMidnight = timestamp.date(local.year(), local.month(), local.day());
-      return localMidnight + duration.value(daysToNextMonday, 'd') + duration.value(5, 'h');
+      return localMidnight + duration.value(8, 'd') + duration.value(5, 'h');
     }
 
     function withinPlanSchedule() {

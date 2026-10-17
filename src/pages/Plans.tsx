@@ -11,7 +11,7 @@ import { Button } from '../components/ui/Button';
 
 const FREE_FEATURES = [
   `Hasta ${FREE_CLIENT_LIMIT} clientes`,
-  'Agenda citas de la semana en curso'
+  'Agenda citas desde hoy hasta 7 días adelante'
 ];
 
 const PREMIUM_FEATURES = [

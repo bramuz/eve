@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { doc, onSnapshot, Timestamp } from 'firebase/firestore';
-import { endOfWeek } from 'date-fns';
+import { addDays, endOfDay } from 'date-fns';
 import { db } from '../firebase/config';
 import { useAuth } from './AuthContext';
 import { FREE_CLIENT_LIMIT } from '../config/plans';
@@ -63,7 +63,7 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
       clientLimit: FREE_CLIENT_LIMIT,
       canAddClient: (currentCount) => isPremium || currentCount < FREE_CLIENT_LIMIT,
       canScheduleOn: (date) =>
-        isPremium || date.getTime() <= endOfWeek(new Date(), { weekStartsOn: 1 }).getTime()
+        isPremium || date.getTime() <= endOfDay(addDays(new Date(), 7)).getTime()
     };
   }, [premiumUntil, loading]);
 
