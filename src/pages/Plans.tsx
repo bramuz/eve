@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { httpsCallable } from 'firebase/functions';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, Crown } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Check, Crown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { functions } from '../firebase/config';
 import { usePlan } from '../context/PlanContext';
@@ -24,6 +24,21 @@ export const Plans = () => {
   const { isPremium, premiumUntil } = usePlan();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const returnedFromPayment = searchParams.has('preapproval_id');
+  const [waitingTimedOut, setWaitingTimedOut] = useState(false);
+  const waitingForPremium = returnedFromPayment && !isPremium && !waitingTimedOut;
+
+  useEffect(() => {
+    if (!returnedFromPayment) return;
+    if (isPremium) {
+      toast.success('¡Pago recibido! Tu plan Premium ya está activo.');
+      setSearchParams({}, { replace: true });
+      return;
+    }
+    const timer = setTimeout(() => setWaitingTimedOut(true), 60000);
+    return () => clearTimeout(timer);
+  }, [returnedFromPayment, isPremium, setSearchParams]);
 
   const handleSubscribe = async () => {
     setLoading(true);
@@ -52,6 +67,19 @@ export const Plans = () => {
         </button>
         <h2 className="text-2xl font-bold text-warm-900 dark:text-white">Planes</h2>
       </div>
+
+      {waitingForPremium && (
+        <div className="p-4 rounded-2xl bg-gold-300/30 text-warm-800 dark:text-warm-100 text-sm flex items-center gap-3">
+          <Loader2 className="w-5 h-5 animate-spin flex-shrink-0" />
+          Estamos confirmando tu pago con Mercado Pago. Esto toma unos segundos, no cierres la página.
+        </div>
+      )}
+
+      {returnedFromPayment && !isPremium && waitingTimedOut && (
+        <div className="p-4 rounded-2xl bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 text-sm">
+          Tu pago aún no se refleja. Puede tardar unos minutos: si ya pagaste, tu plan se activará solo. Si en 10 minutos no cambia, contáctanos.
+        </div>
+      )}
 
       {isPremium && premiumUntil && (
         <div className="p-4 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 text-sm">
