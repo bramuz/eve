@@ -440,7 +440,7 @@ export const Appointments = () => {
                         ? 'bg-white dark:bg-warm-900 hover:bg-warm-50 dark:hover:bg-warm-800' 
                         : 'bg-warm-50 dark:bg-warm-950 opacity-40'
                       }
-                      ${isToday ? 'ring-2 ring-gray-400 ring-inset' : ''}
+                      ${isToday ? 'ring-4 ring-gold-400 ring-inset z-10' : ''}
                     `}
                     style={specialDay && isCurrentMonth ? {
                       backgroundColor: `${specialDay.color}15`
@@ -452,7 +452,7 @@ export const Appointments = () => {
                         className={`
                           text-sm font-semibold
                           ${isToday 
-                            ? 'w-6 h-6 rounded-full bg-gray-500 text-white flex items-center justify-center text-xs' 
+                            ? 'w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-primary-800 shadow-glow text-white flex items-center justify-center text-xs' 
                             : isCurrentMonth
                               ? 'text-warm-900 dark:text-white'
                               : 'text-warm-400 dark:text-warm-600'
@@ -484,7 +484,7 @@ export const Appointments = () => {
                           <div
                             className="rounded px-2 py-1 text-xs font-semibold text-center"
                             style={{
-                              backgroundColor: specialDay?.color || '#d4a574',
+                              backgroundColor: specialDay?.color || '#c9a45c',
                               color: 'white'
                             }}
                           >
@@ -540,7 +540,7 @@ export const Appointments = () => {
             >
               <div 
                 className={`bg-white dark:bg-warm-800 rounded-2xl shadow-sm overflow-hidden transition-all ${
-                  isToday ? 'ring-2 ring-gray-400 shadow-md' : ''
+                  isToday ? 'ring-4 ring-gold-400 shadow-glow scale-[1.02]' : ''
                 } ${specialDay ? 'ring-2 shadow-lg' : ''}`}
                 style={specialDay ? { borderColor: specialDay.color } : {}}
               >
@@ -550,8 +550,8 @@ export const Appointments = () => {
                   style={specialDay ? {
                     background: `linear-gradient(135deg, ${specialDay.color} 0%, ${specialDay.color}dd 100%)`
                   } : isToday 
-                    ? { background: 'linear-gradient(to right, #6b7280, #4b5563)' }
-                    : { background: 'linear-gradient(to right, #d4a574, #c49563)' }
+                    ? { background: 'linear-gradient(to right, #a2405f, #6a2f44)' }
+                    : { background: 'linear-gradient(to right, #f4b5c3, #ea8ca3)' }
                   }
                   onClick={() => handleDayClick(day)}
                 >
@@ -562,8 +562,11 @@ export const Appointments = () => {
                       </p>
                     </div>
                     <div>
-                      <p className="text-white font-semibold capitalize text-sm">
+                      <p className="text-white font-semibold capitalize text-sm flex items-center gap-2">
                         {format(day, 'EEEE', { locale: es })}
+                        {isToday && (
+                          <span className="px-2 py-0.5 rounded-full bg-gold-400 text-warm-900 text-[10px] font-extrabold tracking-widest">HOY</span>
+                        )}
                       </p>
                       {specialDay ? (
                         <p className="text-white/90 text-xs flex items-center gap-1">
@@ -712,7 +715,7 @@ export const Appointments = () => {
             >
               <div 
                 className={`bg-white dark:bg-warm-800 rounded-2xl shadow-sm overflow-hidden h-full min-h-[400px] flex flex-col transition-all hover:shadow-lg ${
-                  isToday ? 'ring-2 ring-gray-400' : ''
+                  isToday ? 'ring-4 ring-gold-400 shadow-glow' : ''
                 } ${specialDay ? 'ring-2 shadow-lg' : ''}`}
                 style={specialDay ? { borderColor: specialDay.color } : {}}
               >
@@ -722,11 +725,14 @@ export const Appointments = () => {
                   style={specialDay ? {
                     background: `linear-gradient(135deg, ${specialDay.color} 0%, ${specialDay.color}dd 100%)`
                   } : isToday 
-                    ? { background: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)' }
-                    : { background: 'linear-gradient(135deg, #d4a574 0%, #c49563 100%)' }
+                    ? { background: 'linear-gradient(135deg, #a2405f 0%, #6a2f44 100%)' }
+                    : { background: 'linear-gradient(135deg, #f4b5c3 0%, #ea8ca3 100%)' }
                   }
                   onClick={() => handleDayClick(day)}
                 >
+                  {isToday && (
+                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-gold-400 text-warm-900 text-[10px] font-extrabold tracking-widest">HOY</span>
+                  )}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

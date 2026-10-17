@@ -19,25 +19,25 @@
 .rbc-header {
   padding: 1.25rem 0.5rem;
   font-weight: 700;
-  color: #6e5a42;
+  color: #a2405f;
   border-bottom: none;
-  background: linear-gradient(135deg, #f5f1eb 0%, #e8dfd4 100%);
+  background: linear-gradient(135deg, #fdecef 0%, #fad8df 100%);
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
 }
 
 .dark .rbc-header {
-  color: #d6c7b5;
+  color: #f4b5c3;
   background: linear-gradient(135deg, #292524 0%, #44403c 100%);
 }
 
 .rbc-today {
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
+  background: linear-gradient(135deg, #ea8ca3 0%, #c25173 100%) !important;
 }
 
 .dark .rbc-today {
-  background: linear-gradient(135deg, #4b5563 0%, #374151 100%) !important;
+  background: linear-gradient(135deg, #c25173 0%, #82364f 100%) !important;
 }
 
 .rbc-off-range-bg {
@@ -124,7 +124,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #d4a574;
+  background-color: #c9a45c;
 }
 
 .month-day-no-appointments {
@@ -222,14 +222,14 @@
 }
 
 .rbc-day-bg:hover {
-  background: linear-gradient(135deg, #fafaf9 0%, #f5f1eb 100%);
+  background: linear-gradient(135deg, #fffbfb 0%, #fdecef 100%);
   transform: scale(0.98);
-  border-color: #d6c7b5;
+  border-color: #f4b5c3;
 }
 
 .dark .rbc-day-bg:hover {
   background: linear-gradient(135deg, #292524 0%, #44403c 100%);
-  border-color: #6e5a42;
+  border-color: #a2405f;
 }
 
 .rbc-toolbar {
@@ -240,8 +240,8 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
-  background: linear-gradient(135deg, #fafaf9 0%, #f5f1eb 100%);
-  border-radius: 1.25rem;
+  background: linear-gradient(135deg, #fffbfb 0%, #fdecef 100%);
+  border-radius: 1.75rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -271,15 +271,15 @@
 }
 
 .rbc-toolbar button:hover {
-  background: linear-gradient(135deg, #a88f6f 0%, #8b7355 100%);
+  background: linear-gradient(135deg, #d96c89 0%, #c25173 100%);
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(139, 115, 85, 0.3);
+  box-shadow: 0 6px 12px rgba(194, 81, 115, 0.3);
 }
 
 .dark .rbc-toolbar button:hover {
-  background: linear-gradient(135deg, #8b7355 0%, #6e5a42 100%);
-  box-shadow: 0 6px 12px rgba(110, 90, 66, 0.4);
+  background: linear-gradient(135deg, #c25173 0%, #a2405f 100%);
+  box-shadow: 0 6px 12px rgba(162, 64, 95, 0.4);
 }
 
 .rbc-toolbar button:active {
@@ -288,30 +288,30 @@
 }
 
 .rbc-toolbar button.rbc-active {
-  background: linear-gradient(135deg, #8b7355 0%, #6e5a42 100%);
+  background: linear-gradient(135deg, #c25173 0%, #a2405f 100%);
   color: white;
-  box-shadow: 0 4px 8px rgba(139, 115, 85, 0.3);
+  box-shadow: 0 4px 8px rgba(194, 81, 115, 0.3);
 }
 
 .dark .rbc-toolbar button.rbc-active {
-  background: linear-gradient(135deg, #6e5a42 0%, #534331 100%);
+  background: linear-gradient(135deg, #a2405f 0%, #82364f 100%);
 }
 
 /* Mejorar visibilidad del título del mes */
 .rbc-toolbar-label {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #3d3125;
+  color: #6a2f44;
   text-transform: capitalize;
   padding: 0.75rem 2rem;
-  background: linear-gradient(135deg, #f5f1eb 0%, #e8dfd4 100%);
+  background: linear-gradient(135deg, #fdecef 0%, #fad8df 100%);
   border-radius: 1rem;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
   letter-spacing: 0.02em;
 }
 
 .dark .rbc-toolbar-label {
-  color: #f5f1eb;
+  color: #fdecef;
   background: linear-gradient(135deg, #44403c 0%, #292524 100%);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
@@ -439,7 +439,7 @@
 }
 
 .rbc-overlay-header {
-  background: linear-gradient(135deg, #8b7355 0%, #6e5a42 100%);
+  background: linear-gradient(135deg, #d96c89 0%, #a2405f 100%);
   color: white;
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
@@ -484,7 +484,7 @@
 }
 
 .rbc-current-time-indicator {
-  background-color: #d4a574;
+  background-color: #c9a45c;
   height: 2px;
 }
 
@@ -499,12 +499,12 @@
 .rbc-label {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #6e5a42;
+  color: #a2405f;
   padding: 0 0.5rem;
 }
 
 .dark .rbc-label {
-  color: #d6c7b5;
+  color: #f4b5c3;
 }
 
 /* Eventos en vista semanal/diaria */
@@ -517,7 +517,7 @@
 }
 
 .rbc-selected {
-  background-color: #8b7355 !important;
+  background-color: #c25173 !important;
 }
 
 /* Header de columnas en vista semanal */

@@ -47,7 +47,7 @@ export const Modal = ({
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 transition={{ duration: 0.2 }}
-                className={`w-full ${sizes[size]} bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-h-[90vh] flex flex-col`}
+                className={`w-full ${sizes[size]} bg-white dark:bg-gray-900 rounded-[2rem] shadow-float overflow-hidden max-h-[90vh] flex flex-col`}
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header */}
@@ -61,7 +61,7 @@ export const Modal = ({
                     {showCloseButton && (
                       <button
                         onClick={onClose}
-                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                       >
                         <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                       </button>

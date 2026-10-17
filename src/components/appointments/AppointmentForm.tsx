@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
+import { usePlan } from '../../context/PlanContext';
+import { Link } from 'react-router-dom';
 import { createDocument, updateDocument, Timestamp } from '../../firebase/firestore';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -33,6 +35,7 @@ export const AppointmentForm = ({
   specialDays = []
 }: AppointmentFormProps) => {
   const { currentUser } = useAuth();
+  const { canScheduleOn } = usePlan();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedDateWarning, setSelectedDateWarning] = useState<SpecialDay | null>(null);
@@ -56,6 +59,7 @@ export const AppointmentForm = ({
   });
 
   const watchedDate = watch('date');
+  const outsideFreeWeek = !!watchedDate && !canScheduleOn(new Date(`${watchedDate}T00:00:00`));
 
   useEffect(() => {
     if (watchedDate) {
@@ -74,6 +78,11 @@ export const AppointmentForm = ({
     // Validar si la fecha seleccionada es un día bloqueado
     const selectedDateObj = new Date(`${data.date}T00:00:00`);
     const specialDay = specialDays.find(sd => isSameDay(sd.date.toDate(), selectedDateObj));
+
+    if (!canScheduleOn(selectedDateObj)) {
+      setError('El plan gratis solo permite agendar citas en la semana en curso.');
+      return;
+    }
     
     if (specialDay?.blockAppointments) {
       toast.error(`No se pueden agendar citas en este día: ${specialDay.label}`);
@@ -143,6 +152,16 @@ export const AppointmentForm = ({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && <Alert variant="error">{error}</Alert>}
+
+      {outsideFreeWeek && (
+        <Alert variant="warning">
+          El plan gratis solo permite agendar en la semana en curso.{' '}
+          <Link to="/plans" className="font-semibold underline">
+            Pásate a Premium
+          </Link>{' '}
+          para agendar semanas futuras.
+        </Alert>
+      )}
 
       {selectedDateWarning && (
         <div
@@ -216,7 +235,7 @@ export const AppointmentForm = ({
         </Button>
         <Button
           type="submit"
-          disabled={loading || (selectedDateWarning?.blockAppointments ?? false)}
+          disabled={loading || outsideFreeWeek || (selectedDateWarning?.blockAppointments ?? false)}
           className="h-12"
         >
           {loading ? 'Guardando...' : appointment ? 'Actualizar' : 'Crear Cita'}

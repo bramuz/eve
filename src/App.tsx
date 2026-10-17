@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { PlanProvider } from './context/PlanContext';
 import { ProtectedRoute, PublicRoute } from './routes/ProtectedRoute';
 import { MobileLayout } from './components/layout/MobileLayout';
 import { Toaster } from 'sonner';
@@ -17,6 +18,7 @@ import { IncomeDashboard } from './pages/IncomeDashboard.tsx';
 import { Appointments } from './pages/Appointments';
 import { Clients } from './pages/Clients';
 import { Notes } from './pages/Notes';
+import { Plans } from './pages/Plans';
 
 function App() {
   // Hook para detectar y recargar nuevas versiones automáticamente
@@ -26,6 +28,7 @@ function App() {
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
+          <PlanProvider>
           <Toaster position="top-center" richColors />
           <Routes>
             {/* Public Routes */}
@@ -106,12 +109,24 @@ function App() {
               }
             />
 
+            <Route
+              path="/plans"
+              element={
+                <ProtectedRoute>
+                  <MobileLayout>
+                    <Plans />
+                  </MobileLayout>
+                </ProtectedRoute>
+              }
+            />
+
             {/* Redirect root to dashboard */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
             {/* 404 - Redirect to dashboard */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
+          </PlanProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

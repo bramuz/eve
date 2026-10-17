@@ -25,16 +25,48 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/clients/$(clientId)).data.userId == request.auth.uid;
     }
 
+    match /users/{userId} {
+      allow read: if signedIn() && request.auth.uid == userId;
+      allow write: if false;
+    }
+
+    function userPath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    function isPremium() {
+      return exists(userPath())
+        && get(userPath()).data.get('premiumUntil', null) != null
+        && get(userPath()).data.premiumUntil > request.time;
+    }
+
+    function underClientLimit() {
+      return !exists(userPath())
+        || get(userPath()).data.get('clientCount', 0) < 5;
+    }
+
+    // Semana Lunes-Domingo en hora de Colombia (UTC-5). Citas guardadas a medianoche local.
+    function freeWeekLimit() {
+      let local = request.time - duration.value(5, 'h');
+      let daysToNextMonday = 8 - local.dayOfWeek();
+      let localMidnight = timestamp.date(local.year(), local.month(), local.day());
+      return localMidnight + duration.value(daysToNextMonday, 'd') + duration.value(5, 'h');
+    }
+
+    function withinPlanSchedule() {
+      return isPremium() || request.resource.data.date < freeWeekLimit();
+    }
+
     match /appointments/{appointmentId} {
       allow read: if ownsDocument();
-      allow create: if createsOwnDocument();
-      allow update: if updatesOwnDocument();
+      allow create: if createsOwnDocument() && withinPlanSchedule();
+      allow update: if updatesOwnDocument() && withinPlanSchedule();
       allow delete: if ownsDocument();
     }
 
     match /clients/{clientId} {
       allow read: if ownsDocument();
-      allow create: if createsOwnDocument();
+      allow create: if createsOwnDocument() && (isPremium() || underClientLimit());
       allow update: if updatesOwnDocument();
       allow delete: if ownsDocument();
     }

@@ -336,6 +336,7 @@ export const Clients = () => {
       >
         <ClientForm
           client={selectedClient}
+          clientCount={clients.length}
           onSuccess={handleSuccess}
           onCancel={() => {
             setShowModal(false);

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
+import { usePlan } from '../../context/PlanContext';
+import { Link } from 'react-router-dom';
 import { createDocument, updateDocument } from '../../firebase/firestore';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -10,6 +12,7 @@ import { toast } from 'sonner';
 
 interface ClientFormProps {
   client?: Client | null;
+  clientCount?: number;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -18,8 +21,10 @@ interface FormData {
   name: string;
 }
 
-export const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
+export const ClientForm = ({ client, clientCount = 0, onSuccess, onCancel }: ClientFormProps) => {
   const { currentUser } = useAuth();
+  const { canAddClient, clientLimit } = usePlan();
+  const limitReached = !client && !canAddClient(clientCount);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -37,6 +42,7 @@ export const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => 
 
   const onSubmit = async (data: FormData) => {
     if (!currentUser) return;
+    if (limitReached) return;
 
     setLoading(true);
     setError('');
@@ -82,6 +88,16 @@ export const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => 
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {error && <Alert variant="error">{error}</Alert>}
 
+      {limitReached && (
+        <Alert variant="warning">
+          Llegaste al límite de {clientLimit} clientes del plan gratis.{' '}
+          <Link to="/plans" className="font-semibold underline">
+            Pásate a Premium
+          </Link>{' '}
+          para registrar más.
+        </Alert>
+      )}
+
       <Input
         label="Nombre completo *"
         placeholder="Juan Pérez"
@@ -100,7 +116,7 @@ export const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => 
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit" loading={loading}>
+        <Button type="submit" loading={loading} disabled={limitReached}>
           {client ? 'Actualizar' : 'Crear'} Cliente
         </Button>
       </div>
