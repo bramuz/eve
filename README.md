@@ -246,6 +246,22 @@ npm run deploy
 
 ---
 
+## ⚖️ Documentos legales y salida a producción
+
+La aplicación publica los términos y la política de tratamiento en `/legal/terminos` y `/legal/privacidad`. Las versiones vigentes deben ser aceptadas al registrarse y cuando cambien; la aceptación se registra en Cloud Functions.
+
+Los documentos contienen los datos del responsable facilitados por el operador y son un **borrador para Colombia**, no asesoría ni concepto jurídico. Verifica la dirección completa y apropiada para publicación, y solicita revisión jurídica antes de aceptar usuarios o cobrar:
+
+1. Confirma nombre, documento, domicilio completo en Colombia y correo de privacidad en `src/legal/documents.ts`.
+2. Pide revisión a un abogado colombiano, especialmente sobre protección de datos sensibles, datos de salud, registros profesionales, conservación y derechos del consumidor.
+3. Verifica la ubicación del proyecto Firebase, los encargados y transferencias internacionales, los plazos de retención y el proceso para atender solicitudes y eliminar/exportar datos.
+4. Mantén sincronizadas las versiones legales en `src/legal/documents.ts` y `functions/src/index.ts`.
+5. Despliega las Cloud Functions actualizadas para registrar y comprobar aceptaciones, y para habilitar la cancelación de suscripciones de Mercado Pago.
+
+La plantilla de consentimiento de procedimiento es orientativa y no sustituye una autorización separada para tratar datos personales sensibles ni los registros clínicos exigidos por la actividad profesional.
+
+---
+
 ## 🤝 Contribuir
 
 Las contribuciones son bienvenidas! Para contribuir:

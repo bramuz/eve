@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Alert } from '../components/ui/Alert';
+import { LegalFooter } from '../components/layout/LegalFooter';
 
 interface LoginForm {
   email: string;
@@ -174,6 +175,7 @@ export const Login = () => {
             </Link>
           </p>
         </div>
+        <LegalFooter />
       </motion.div>
     </div>
   );

@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { type ReactNode } from 'react';
 import { Loading } from '../components/ui/Loading';
+import { LegalAcceptanceGate } from '../components/LegalAcceptanceGate';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -18,7 +19,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
+  return <LegalAcceptanceGate>{children}</LegalAcceptanceGate>;
 };
 
 export const PublicRoute = ({ children }: ProtectedRouteProps) => {

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { Textarea } from '../ui/Textarea';
 import { toast } from 'sonner';
 import { createDocument } from '../../firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
@@ -14,34 +15,54 @@ interface ConsentFormProps {
   onCancel: () => void;
 }
 
-const getConsentTemplate = (clientName: string, procedureName: string, professionalName: string, date: string, clientCedula: string) => `CONSENTIMIENTO INFORMADO PARA PROCEDIMIENTO ESTÉTICO
+interface ConsentDetails {
+  clientName: string;
+  procedureName: string;
+  professionalName: string;
+  date: string;
+  clientCedula: string;
+  procedureDetails: string;
+  expectedBenefits: string;
+  risksAndEffects: string;
+  alternatives: string;
+  aftercare: string;
+}
 
-Yo, ${clientName || '___________________'}, con cédula/pasaporte ${clientCedula || '_________________'}, declaro que he recibido información clara y completa sobre el procedimiento: ${procedureName || '___________________'}.
+const getConsentTemplate = ({
+  clientName,
+  procedureName,
+  professionalName,
+  date,
+  clientCedula,
+  procedureDetails,
+  expectedBenefits,
+  risksAndEffects,
+  alternatives,
+  aftercare
+}: ConsentDetails) => `CONSENTIMIENTO INFORMADO PARA PROCEDIMIENTO
 
-INFORMACIÓN SOBRE EL PROCEDIMIENTO:
-He sido informado(a) sobre:
-• La naturaleza del procedimiento
-• Los beneficios esperados
-• Los posibles riesgos y efectos secundarios
-• Las alternativas de tratamiento disponibles
-• El tiempo de recuperación esperado
+Yo, ${clientName || '___________________'}${clientCedula ? `, identificado(a) con ${clientCedula}` : ''}, declaro que el profesional ${professionalName || '_______________________________'} me explicó el procedimiento ${procedureName || '___________________'}.
 
-CONSIDERACIONES IMPORTANTES:
-• Este procedimiento puede causar enrojecimiento, inflamación o molestias temporales
-• Se recomienda evitar la exposición solar directa por 48 horas
-• Es importante seguir las instrucciones post-procedimiento
-• Se pueden requerir sesiones de seguimiento
+DESCRIPCIÓN, TÉCNICA Y ZONA:
+${procedureDetails || '[Completar con la descripción específica del procedimiento]'}
+
+BENEFICIOS ESPERADOS:
+${expectedBenefits || '[Completar beneficios esperados y límites del resultado]'}
+
+RIESGOS, EFECTOS ADVERSOS Y CONTRAINDICACIONES:
+${risksAndEffects || '[Completar los riesgos específicos de este procedimiento]'}
+
+ALTERNATIVAS, INCLUIDA LA OPCIÓN DE NO REALIZAR EL PROCEDIMIENTO:
+${alternatives || '[Completar las alternativas disponibles]'}
+
+CUIDADOS POSTERIORES Y RECUPERACIÓN:
+${aftercare || '[Completar instrucciones y tiempo estimado de recuperación]'}
 
 AUTORIZACIÓN:
-Reconozco que:
-✓ He sido informado(a) completamente sobre el procedimiento
-✓ He tenido la oportunidad de hacer preguntas
-✓ Entiendo los riesgos y beneficios
-✓ Consiento voluntariamente en recibir este procedimiento
-✓ Autorizo al profesional a llevar a cabo el procedimiento
+Declaro que pude hacer preguntas y recibí respuestas comprensibles. Entiendo que puedo decidir no realizar el procedimiento y que los resultados pueden variar. Autorizo voluntariamente la realización del procedimiento descrito. Esta autorización corresponde únicamente al procedimiento aquí indicado.
 
-Procedimiento realizado por: ${professionalName || '_______________________________'}
-Fecha: ${date || '__________________'}
+Profesional: ${professionalName || '_______________________________'}
+Fecha del consentimiento: ${date || '__________________'}
 
 
 FIRMA DEL PACIENTE
@@ -50,7 +71,9 @@ Firma: _________________________________
 
 Nombre: ${clientName || '___________________'}
 
-Cédula: ${clientCedula || '___________________'}`;
+Identificación (si es necesaria): ${clientCedula || '___________________'}
+
+Este formato es una ayuda general. No sustituye la valoración profesional, la historia clínica, la autorización de tratamiento de datos personales ni los requisitos específicos aplicables a cada procedimiento. El profesional debe verificar y completar la información antes de presentarlo al paciente.`;
 
 export const ConsentForm = ({ clientId, clientName, onSuccess, onCancel }: ConsentFormProps) => {
   const { currentUser } = useAuth();
@@ -59,6 +82,12 @@ export const ConsentForm = ({ clientId, clientName, onSuccess, onCancel }: Conse
   const [professionalName, setProfessionalName] = useState('');
   const [consentDate, setConsentDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [clientCedula, setClientCedula] = useState('');
+  const [procedureDetails, setProcedureDetails] = useState('');
+  const [expectedBenefits, setExpectedBenefits] = useState('');
+  const [risksAndEffects, setRisksAndEffects] = useState('');
+  const [alternatives, setAlternatives] = useState('');
+  const [aftercare, setAftercare] = useState('');
+  const [patientAcknowledged, setPatientAcknowledged] = useState(false);
   const [loading, setLoading] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -168,8 +197,13 @@ export const ConsentForm = ({ clientId, clientName, onSuccess, onCancel }: Conse
       return;
     }
 
-    if (!clientCedula.trim()) {
-      toast.error('Por favor ingresa la cédula del cliente');
+    if (!procedureDetails.trim() || !expectedBenefits.trim() || !risksAndEffects.trim() || !alternatives.trim() || !aftercare.trim()) {
+      toast.error('Completa la información específica del procedimiento antes de continuar');
+      return;
+    }
+
+    if (!patientAcknowledged) {
+      toast.error('Confirma que el paciente recibió la información y pudo hacer preguntas');
       return;
     }
 
@@ -188,7 +222,18 @@ export const ConsentForm = ({ clientId, clientName, onSuccess, onCancel }: Conse
 
     try {
       const signatureDataURL = canvas.toDataURL('image/png');
-      const consentText = getConsentTemplate(editClientName, procedureName, professionalName, consentDate, clientCedula);
+      const consentText = getConsentTemplate({
+        clientName: editClientName,
+        procedureName,
+        professionalName,
+        date: consentDate,
+        clientCedula,
+        procedureDetails,
+        expectedBenefits,
+        risksAndEffects,
+        alternatives,
+        aftercare
+      });
 
       const docData = {
         clientId,
@@ -197,6 +242,12 @@ export const ConsentForm = ({ clientId, clientName, onSuccess, onCancel }: Conse
         professionalName,
         consentDate,
         clientCedula,
+        procedureDetails,
+        expectedBenefits,
+        risksAndEffects,
+        alternatives,
+        aftercare,
+        patientAcknowledged,
         consentText,
         signatureDataURL,
         signedAt: new Date().toISOString(),
@@ -223,16 +274,28 @@ export const ConsentForm = ({ clientId, clientName, onSuccess, onCancel }: Conse
     }
   };
 
-  const consentPreview = getConsentTemplate(
-    editClientName || '[Nombre del cliente]',
-    procedureName || '[Nombre del procedimiento]',
-    professionalName || '[Nombre del profesional]',
-    consentDate,
-    clientCedula || '[Cédula del cliente]'
-  );
+  const consentPreview = getConsentTemplate({
+    clientName: editClientName || '[Nombre del cliente]',
+    procedureName: procedureName || '[Nombre del procedimiento]',
+    professionalName: professionalName || '[Nombre del profesional]',
+    date: consentDate,
+    clientCedula,
+    procedureDetails,
+    expectedBenefits,
+    risksAndEffects,
+    alternatives,
+    aftercare
+  });
 
   return (
     <div className="space-y-4">
+      <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100">
+        Este formato es una ayuda general, no asesoría jurídica ni sustituto de la valoración o historia clínica.
+        Describe los riesgos y cuidados reales del procedimiento. La autorización para tratar datos sensibles
+        o usar fotografías debe gestionarse por separado cuando corresponda. No solicites identificación que
+        no sea necesaria.
+      </div>
+
       {/* Client Name Input */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -291,16 +354,57 @@ export const ConsentForm = ({ clientId, clientName, onSuccess, onCancel }: Conse
       {/* Client Cedula Input */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Cédula/Pasaporte del Cliente *
+          Cédula/Pasaporte del Cliente (opcional; solo si es necesario)
         </label>
         <Input
           type="text"
-          placeholder="Ingresa la cédula o pasaporte"
+          placeholder="Identificación"
           value={clientCedula}
           onChange={(e) => setClientCedula(e.target.value)}
           className="w-full"
         />
       </div>
+
+      <Textarea
+        label="Descripción, técnica y zona del procedimiento *"
+        placeholder="Describe qué se realizará, con qué técnica y en qué zona."
+        value={procedureDetails}
+        onChange={(e) => setProcedureDetails(e.target.value)}
+      />
+      <Textarea
+        label="Beneficios esperados y límites del resultado *"
+        placeholder="Explica los beneficios esperados y que los resultados pueden variar."
+        value={expectedBenefits}
+        onChange={(e) => setExpectedBenefits(e.target.value)}
+      />
+      <Textarea
+        label="Riesgos, efectos adversos y contraindicaciones *"
+        placeholder="Detalla los riesgos relevantes y contraindicaciones de este procedimiento."
+        value={risksAndEffects}
+        onChange={(e) => setRisksAndEffects(e.target.value)}
+      />
+      <Textarea
+        label="Alternativas, incluida la opción de no realizarlo *"
+        placeholder="Explica las alternativas disponibles."
+        value={alternatives}
+        onChange={(e) => setAlternatives(e.target.value)}
+      />
+      <Textarea
+        label="Cuidados posteriores y recuperación *"
+        placeholder="Indica cuidados, señales de alerta y recuperación prevista."
+        value={aftercare}
+        onChange={(e) => setAftercare(e.target.value)}
+      />
+
+      <label className="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300">
+        <input
+          type="checkbox"
+          checked={patientAcknowledged}
+          onChange={(e) => setPatientAcknowledged(e.target.checked)}
+          className="mt-1 h-4 w-4 accent-primary-600"
+        />
+        Confirmo que el paciente recibió y comprendió la información específica anterior y tuvo oportunidad de preguntar.
+      </label>
 
       {/* Consent Preview */}
       <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -375,7 +479,7 @@ export const ConsentForm = ({ clientId, clientName, onSuccess, onCancel }: Conse
         </Button>
         <Button
           onClick={handleSubmit}
-          disabled={loading || !signaturePresent || !procedureName.trim()}
+          disabled={loading || !signaturePresent || !procedureName.trim() || !patientAcknowledged}
           className="flex-1"
         >
           <Save className="w-4 h-4 mr-2" />

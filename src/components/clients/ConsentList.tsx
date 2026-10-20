@@ -14,6 +14,20 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 
+const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (character) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;'
+}[character] ?? character));
+
+const fetchClientConsents = (clientId: string, userId: string) =>
+  getDocuments('clientConsents', [
+    where('clientId', '==', clientId),
+    where('userId', '==', userId)
+  ]);
+
 interface ConsentListProps {
   clientId: string;
   clientName: string;
@@ -30,28 +44,41 @@ interface ConsentListProps {
   const [consentToDelete, setConsentToDelete] = useState<ClientConsent | null>(null);
 
   useEffect(() => {
-    loadConsents();
-  }, [clientId]);
+    if (!currentUser) return;
+    let active = true;
+
+    fetchClientConsents(clientId, currentUser.uid).then(({ data, error }) => {
+      if (!active) return;
+      if (error) {
+        toast.error('Error al cargar los consentimientos');
+      } else {
+        setConsents((data as ClientConsent[]).sort(
+          (a, b) => new Date(b.signedAt).getTime() - new Date(a.signedAt).getTime()
+        ));
+      }
+      setLoading(false);
+    }).catch((error: unknown) => {
+      console.error('Error al cargar los consentimientos:', error);
+      if (!active) return;
+      toast.error('Error al cargar los consentimientos');
+      setLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [clientId, currentUser]);
 
   const loadConsents = async () => {
     if (!currentUser) return;
-
-    setLoading(true);
-    const { data, error } = await getDocuments('clientConsents', [
-      where('clientId', '==', clientId),
-      where('userId', '==', currentUser.uid),
-    ]);
-
+    const { data, error } = await fetchClientConsents(clientId, currentUser.uid);
     if (error) {
       toast.error('Error al cargar los consentimientos');
-    } else {
-      const sorted = (data as ClientConsent[]).sort(
-        (a, b) => new Date(b.signedAt).getTime() - new Date(a.signedAt).getTime()
-      );
-      setConsents(sorted);
+      return;
     }
-
-    setLoading(false);
+    setConsents((data as ClientConsent[]).sort(
+      (a, b) => new Date(b.signedAt).getTime() - new Date(a.signedAt).getTime()
+    ));
   };
 
   const handleDelete = (consent: ClientConsent) => {
@@ -76,13 +103,15 @@ interface ConsentListProps {
   };
 
   const handleDownloadPDF = (consent: ClientConsent) => {
-    // Create a PDF-like document by opening in new tab or downloading
+    const signature = /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(consent.signatureDataURL)
+      ? `<img src="${escapeHtml(consent.signatureDataURL)}" alt="Firma" class="signature-image" />`
+      : '<p>Firma no disponible</p>';
     const doc = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Consentimiento - ${consent.procedureName}</title>
+  <title>Consentimiento - ${escapeHtml(consent.procedureName)}</title>
   <style>
     body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
     .header { text-align: center; margin-bottom: 30px; }
@@ -108,17 +137,17 @@ interface ConsentListProps {
 <body>
   <div class="header">
     <h1>Consentimiento Informado</h1>
-    <p>Procedimiento: ${consent.procedureName}</p>
-    <p>Paciente: ${consent.clientName}</p>
+    <p>Procedimiento: ${escapeHtml(consent.procedureName)}</p>
+    <p>Paciente: ${escapeHtml(consent.clientName)}</p>
     <p>Fecha: ${format(new Date(consent.signedAt), 'd MMMM yyyy', { locale: es })}</p>
   </div>
   
-  <div class="content">${consent.consentText}</div>
+  <div class="content">${escapeHtml(consent.consentText)}</div>
   
   <div class="signature-section">
     <div class="signature-box">
       <p><strong>Firma del Paciente</strong></p>
-      <img src="${consent.signatureDataURL}" alt="Firma" class="signature-image" />
+      ${signature}
     </div>
   </div>
   

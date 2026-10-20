@@ -8,6 +8,8 @@ import { functions } from '../firebase/config';
 import { usePlan } from '../context/PlanContext';
 import { FREE_CLIENT_LIMIT, PREMIUM_PRICE_LABEL } from '../config/plans';
 import { Button } from '../components/ui/Button';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { LegalFooter } from '../components/layout/LegalFooter';
 
 const FREE_FEATURES = [
   `Hasta ${FREE_CLIENT_LIMIT} clientes`,
@@ -21,13 +23,17 @@ const PREMIUM_FEATURES = [
 ];
 
 export const Plans = () => {
-  const { isPremium, premiumUntil } = usePlan();
+  const { isPremium, premiumUntil, subscriptionStatus } = usePlan();
   const [loading, setLoading] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const returnedFromPayment = searchParams.has('preapproval_id');
   const [waitingTimedOut, setWaitingTimedOut] = useState(false);
   const waitingForPremium = returnedFromPayment && !isPremium && !waitingTimedOut;
+  const canCancelSubscription = ['authorized', 'pending', 'paused'].includes(subscriptionStatus ?? '');
+  const canStartSubscription = !isPremium && (!subscriptionStatus || subscriptionStatus === 'cancelled');
 
   useEffect(() => {
     if (!returnedFromPayment) return;
@@ -49,9 +55,26 @@ export const Plans = () => {
       );
       const { data } = await createSubscription({ returnUrl: `${window.location.origin}/plans` });
       window.location.assign(data.url);
-    } catch (err: any) {
-      toast.error(err.message || 'No se pudo iniciar la suscripción');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo iniciar la suscripción');
       setLoading(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    setCancelling(true);
+    try {
+      const cancelSubscription = httpsCallable<void, { status: string }>(
+        functions,
+        'cancelSubscription'
+      );
+      await cancelSubscription();
+      toast.success('Suscripción cancelada. No se generarán nuevos cobros.');
+      setConfirmCancel(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo cancelar la suscripción');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -87,6 +110,29 @@ export const Plans = () => {
         </div>
       )}
 
+      {canCancelSubscription && (
+        <div className="rounded-xl border border-warm-200 bg-white p-4 dark:border-warm-700 dark:bg-warm-800">
+          <p className="text-sm text-warm-700 dark:text-warm-300">
+            Tu suscripción se cobra mensualmente por Mercado Pago. Puedes detener las próximas
+            renovaciones aquí; conservarás el acceso Premium hasta el final del período pagado.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => setConfirmCancel(true)}
+            loading={cancelling}
+            className="mt-3"
+          >
+            Cancelar renovación
+          </Button>
+        </div>
+      )}
+
+      {subscriptionStatus === 'cancelled' && (
+        <div className="rounded-xl bg-warm-100 p-4 text-sm text-warm-700 dark:bg-warm-800 dark:text-warm-300">
+          La renovación está cancelada. No se generarán nuevos cobros.
+        </div>
+      )}
+
       <div className="rounded-2xl border border-warm-200 dark:border-warm-700 bg-white dark:bg-warm-800 p-5">
         <h3 className="text-lg font-semibold text-warm-900 dark:text-white">Gratis</h3>
         <ul className="mt-3 space-y-2">
@@ -112,12 +158,34 @@ export const Plans = () => {
             </li>
           ))}
         </ul>
-        {!isPremium && (
+        {canStartSubscription && (
           <Button onClick={handleSubscribe} loading={loading} className="w-full mt-5 h-12">
             Suscribirme
           </Button>
         )}
+        {subscriptionStatus === 'pending' && (
+          <p className="mt-4 text-sm text-warm-700 dark:text-warm-300">
+            Hay una suscripción pendiente. Puedes completar el pago o cancelar la renovación pendiente antes de iniciar otra.
+          </p>
+        )}
       </div>
+
+      <LegalFooter />
+
+      <ConfirmDialog
+        isOpen={confirmCancel}
+        title="¿Cancelar la renovación?"
+        message={`Mercado Pago dejará de generar futuros cobros. ${
+          premiumUntil
+            ? `Mantendrás Premium hasta el ${format(premiumUntil, 'dd/MM/yyyy')}.`
+            : 'El acceso Premium terminará cuando finalice el período pagado.'
+        }`}
+        confirmText="Sí, cancelar renovación"
+        cancelText="Volver"
+        variant="warning"
+        onConfirm={() => void handleCancelSubscription()}
+        onCancel={() => setConfirmCancel(false)}
+      />
     </div>
   );
 };

@@ -13,6 +13,65 @@ const MP_API = 'https://api.mercadopago.com';
 const PREMIUM_PRICE_COP = 19900;
 const GRACE_DAYS = 3;
 const DAY_MS = 24 * 60 * 60 * 1000;
+const LEGAL_TERMS_VERSION = '2026-10-19-v3';
+const LEGAL_PRIVACY_VERSION = '2026-10-19-v3';
+
+export const getLegalAcceptance = onCall(
+  { region: 'us-central1' },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+    }
+
+    const latest = await db
+      .collection('legalAcceptances')
+      .doc(uid)
+      .collection('events')
+      .orderBy('acceptedAt', 'desc')
+      .limit(1)
+      .get();
+    const acceptance = latest.docs[0]?.data();
+
+    return {
+      accepted: acceptance?.termsVersion === LEGAL_TERMS_VERSION
+        && acceptance?.privacyVersion === LEGAL_PRIVACY_VERSION
+    };
+  }
+);
+
+export const recordLegalAcceptance = onCall(
+  { region: 'us-central1' },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+    }
+
+    const { termsVersion, privacyVersion, method, confirmedAdult, userAgent } = request.data ?? {};
+    if (
+      termsVersion !== LEGAL_TERMS_VERSION
+      || privacyVersion !== LEGAL_PRIVACY_VERSION
+      || !['email', 'google', 'in-app'].includes(method)
+      || confirmedAdult !== true
+      || typeof userAgent !== 'string'
+      || userAgent.length > 500
+    ) {
+      throw new HttpsError('invalid-argument', 'La aceptación legal está incompleta o desactualizada.');
+    }
+
+    await db.collection('legalAcceptances').doc(uid).collection('events').add({
+      termsVersion,
+      privacyVersion,
+      method,
+      confirmedAdult,
+      userAgent,
+      acceptedAt: Timestamp.now()
+    });
+
+    return { recorded: true };
+  }
+);
 
 const mpFetch = async (path: string, token: string, init?: RequestInit) => {
   const res = await fetch(`${MP_API}${path}`, {
@@ -41,7 +100,17 @@ export const createSubscription = onCall(
     }
 
     const returnUrl = String(request.data?.returnUrl ?? '');
-    if (!/^https:\/\/|^http:\/\/localhost/.test(returnUrl)) {
+    let parsedReturnUrl: URL;
+    try {
+      parsedReturnUrl = new URL(returnUrl);
+    } catch {
+      throw new HttpsError('invalid-argument', 'returnUrl inválida.');
+    }
+    const isProductionReturnUrl = parsedReturnUrl.protocol === 'https:'
+      && ['stetik.app', 'www.stetik.app'].includes(parsedReturnUrl.hostname);
+    const isLocalReturnUrl = parsedReturnUrl.protocol === 'http:'
+      && parsedReturnUrl.hostname === 'localhost';
+    if (!isProductionReturnUrl && !isLocalReturnUrl) {
       throw new HttpsError('invalid-argument', 'returnUrl inválida.');
     }
 
@@ -62,7 +131,48 @@ export const createSubscription = onCall(
       })
     });
 
-    return { url: preapproval.init_point as string };
+    if (typeof preapproval.id !== 'string' || typeof preapproval.init_point !== 'string') {
+      throw new HttpsError('internal', 'Mercado Pago no devolvió una suscripción válida.');
+    }
+
+    await db.doc(`users/${uid}`).set({
+      subscriptionStatus: preapproval.status,
+      preapprovalId: preapproval.id
+    }, { merge: true });
+
+    return { url: preapproval.init_point };
+  }
+);
+
+export const cancelSubscription = onCall(
+  { secrets: [MP_ACCESS_TOKEN], region: 'us-central1' },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+    }
+
+    const user = await db.doc(`users/${uid}`).get();
+    const preapprovalId = user.data()?.preapprovalId;
+    if (typeof preapprovalId !== 'string' || !preapprovalId) {
+      throw new HttpsError('failed-precondition', 'No encontramos una suscripción para cancelar.');
+    }
+
+    const result = await mpFetch(`/preapproval/${encodeURIComponent(preapprovalId)}`, MP_ACCESS_TOKEN.value(), {
+      method: 'PUT',
+      body: JSON.stringify({ status: 'cancelled' })
+    });
+
+    if (result.status !== 'cancelled') {
+      throw new HttpsError('failed-precondition', 'Mercado Pago no confirmó la cancelación.');
+    }
+
+    await db.doc(`users/${uid}`).set({
+      subscriptionStatus: result.status,
+      preapprovalId
+    }, { merge: true });
+
+    return { status: result.status };
   }
 );
 

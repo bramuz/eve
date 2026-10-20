@@ -182,6 +182,12 @@ export interface ClientConsent {
   professionalName: string;
   consentDate: string;
   clientCedula: string;
+  procedureDetails?: string;
+  expectedBenefits?: string;
+  risksAndEffects?: string;
+  alternatives?: string;
+  aftercare?: string;
+  patientAcknowledged?: boolean;
   consentText: string;
   signatureDataURL: string; // Base64 encoded signature image
   signedAt: string;

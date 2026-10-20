@@ -1,45 +1,53 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, Chrome } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Alert } from '../components/ui/Alert';
+import { LegalFooter } from '../components/layout/LegalFooter';
+import { recordLegalAcceptance } from '../legal/acceptance';
 
 interface RegisterForm {
   name: string;
   email: string;
   password: string;
   confirmPassword: string;
+  confirmAdult: boolean;
+  acceptLegal: boolean;
 }
 
 export const Register = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp, signInGoogle, currentUser } = useAuth();
+  const { signUp, signInGoogle, signOut, currentUser } = useAuth();
+  const [registrationFlow, setRegistrationFlow] = useState(false);
   const navigate = useNavigate();
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors }
   } = useForm<RegisterForm>();
 
-  const password = watch('password');
+  const password = useWatch({ control, name: 'password' });
+  const confirmedAdult = useWatch({ control, name: 'confirmAdult' });
+  const acceptedLegal = useWatch({ control, name: 'acceptLegal' });
 
   // Auto-redirect if user is already logged in
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && !registrationFlow) {
       console.log('[Register] User detected, redirecting to dashboard:', currentUser.email);
       navigate('/dashboard', { replace: true });
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, navigate, registrationFlow]);
 
   const onSubmit = async (data: RegisterForm) => {
     setLoading(true);
     setError('');
+    setRegistrationFlow(true);
 
     const { user, error: signUpError } = await signUp(
       data.email,
@@ -49,28 +57,46 @@ export const Register = () => {
 
     if (signUpError) {
       setError('Error al crear la cuenta. Por favor, intenta con otro email.');
-      setLoading(false);
     } else if (user) {
-      navigate('/dashboard');
+      try {
+        await recordLegalAcceptance('email', data.confirmAdult);
+        navigate('/dashboard');
+      } catch (acceptanceError) {
+        console.error('No se pudo registrar la aceptación legal:', acceptanceError);
+        await signOut();
+        setError('La cuenta se creó, pero no pudimos guardar tu aceptación. Inicia sesión para completarla.');
+      }
     }
+    setRegistrationFlow(false);
+    setLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
+    if (!confirmedAdult || !acceptedLegal) {
+      setError('Confirma que eres mayor de edad y acepta los documentos para continuar.');
+      return;
+    }
+
     setLoading(true);
     setError('');
-    
+    setRegistrationFlow(true);
+
     const result = await signInGoogle();
 
     if (result.error) {
       setError(result.error);
-      setLoading(false);
     } else if (result.user) {
-      // Popup successful - navigate to dashboard
-      navigate('/dashboard');
-    } else {
-      // User closed popup
-      setLoading(false);
+      try {
+        await recordLegalAcceptance('google', true);
+        navigate('/dashboard');
+      } catch (acceptanceError) {
+        console.error('No se pudo registrar la aceptación legal:', acceptanceError);
+        await signOut();
+        setError('No pudimos guardar tu aceptación. Inténtalo de nuevo.');
+      }
     }
+    setRegistrationFlow(false);
+    setLoading(false);
   };
 
   return (
@@ -163,6 +189,41 @@ export const Register = () => {
               })}
             />
 
+            <div className="space-y-3 pt-1 text-sm text-gray-700 dark:text-gray-300">
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 accent-primary-600"
+                  {...register('confirmAdult', { required: 'Debes confirmar que tienes 18 años o más' })}
+                />
+                <span>Confirmo que tengo 18 años o más.</span>
+              </label>
+              {errors.confirmAdult && (
+                <p className="text-xs text-red-600">{errors.confirmAdult.message}</p>
+              )}
+
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 accent-primary-600"
+                  {...register('acceptLegal', { required: 'Debes aceptar los documentos para crear una cuenta' })}
+                />
+                <span>
+                  He leído y acepto los{' '}
+                  <Link className="font-medium text-primary-600 underline" to="/legal/terminos" target="_blank">
+                    Términos y condiciones
+                  </Link>{' '}
+                  y la{' '}
+                  <Link className="font-medium text-primary-600 underline" to="/legal/privacidad" target="_blank">
+                    Política de tratamiento de datos personales
+                  </Link>.
+                </span>
+              </label>
+              {errors.acceptLegal && (
+                <p className="text-xs text-red-600">{errors.acceptLegal.message}</p>
+              )}
+            </div>
+
             <Button type="submit" fullWidth loading={loading}>
               Crear Cuenta
             </Button>
@@ -203,6 +264,7 @@ export const Register = () => {
             </Link>
           </p>
         </div>
+        <LegalFooter />
       </motion.div>
     </div>
   );

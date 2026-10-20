@@ -9,6 +9,7 @@ interface PlanContextType {
   isPremium: boolean;
   loading: boolean;
   premiumUntil: Date | null;
+  subscriptionStatus: string | null;
   clientLimit: number;
   canAddClient: (currentCount: number) => boolean;
   canScheduleOn: (date: Date) => boolean;
@@ -27,11 +28,13 @@ export const usePlan = () => {
 export const PlanProvider = ({ children }: { children: ReactNode }) => {
   const { currentUser } = useAuth();
   const [premiumUntil, setPremiumUntil] = useState<Date | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!currentUser) {
       setPremiumUntil(null);
+      setSubscriptionStatus(null);
       setLoading(false);
       return;
     }
@@ -41,11 +44,14 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
       doc(db, 'users', currentUser.uid),
       (snap) => {
         const until = snap.data()?.premiumUntil as Timestamp | undefined;
+        const status = snap.data()?.subscriptionStatus;
         setPremiumUntil(until ? until.toDate() : null);
+        setSubscriptionStatus(typeof status === 'string' ? status : null);
         setLoading(false);
       },
       () => {
         setPremiumUntil(null);
+        setSubscriptionStatus(null);
         setLoading(false);
       }
     );
@@ -60,12 +66,13 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
       isPremium,
       loading,
       premiumUntil,
+      subscriptionStatus,
       clientLimit: FREE_CLIENT_LIMIT,
       canAddClient: (currentCount) => isPremium || currentCount < FREE_CLIENT_LIMIT,
       canScheduleOn: (date) =>
         isPremium || date.getTime() <= endOfDay(addDays(new Date(), 7)).getTime()
     };
-  }, [premiumUntil, loading]);
+  }, [premiumUntil, subscriptionStatus, loading]);
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;
 };

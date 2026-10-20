@@ -19,6 +19,7 @@ import { Appointments } from './pages/Appointments';
 import { Clients } from './pages/Clients';
 import { Notes } from './pages/Notes';
 import { Plans } from './pages/Plans';
+import { LegalPage } from './pages/LegalPage';
 
 function App() {
   // Hook para detectar y recargar nuevas versiones automáticamente
@@ -31,6 +32,9 @@ function App() {
           <PlanProvider>
           <Toaster position="top-center" richColors />
           <Routes>
+            <Route path="/legal/privacidad" element={<LegalPage />} />
+            <Route path="/legal/terminos" element={<LegalPage />} />
+
             {/* Public Routes */}
             <Route
               path="/login"
