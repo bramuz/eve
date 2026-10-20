@@ -12,12 +12,32 @@ interface LegalAcceptanceGateProps {
 
 const checkAcceptance = () => getLegalAcceptance();
 
+const getAcceptanceErrorMessage = (error: unknown) => {
+  const code = typeof error === 'object' && error !== null && 'code' in error
+    ? String(error.code)
+    : '';
+
+  if (code === 'functions/not-found') {
+    return 'La función de Firebase que verifica la aceptación legal no está desplegada. Desde la carpeta del proyecto ejecuta: npm run deploy --prefix functions. Verifica también que Firebase CLI esté apuntando al proyecto correcto.';
+  }
+
+  if (code === 'functions/unauthenticated') {
+    return 'Tu sesión expiró. Cierra sesión, vuelve a iniciar sesión e inténtalo de nuevo.';
+  }
+
+  if (code === 'functions/permission-denied') {
+    return 'Firebase rechazó la verificación. Revisa que la cuenta tenga sesión activa y que las Cloud Functions estén desplegadas en el proyecto correcto.';
+  }
+
+  return 'No se pudo conectar con Firebase para verificar la aceptación. Revisa tu conexión y confirma que las Cloud Functions estén desplegadas.';
+};
+
 export const LegalAcceptanceGate = ({ children }: LegalAcceptanceGateProps) => {
   const [accepted, setAccepted] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [loadError, setLoadError] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -25,12 +45,12 @@ export const LegalAcceptanceGate = ({ children }: LegalAcceptanceGateProps) => {
       .then((hasAccepted) => {
         if (active) {
           setAccepted(hasAccepted);
-          setLoadError(false);
+          setLoadError(null);
         }
       })
       .catch((error: unknown) => {
         console.error('No se pudo comprobar la aceptación legal:', error);
-        if (active) setLoadError(true);
+        if (active) setLoadError(getAcceptanceErrorMessage(error));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -43,12 +63,12 @@ export const LegalAcceptanceGate = ({ children }: LegalAcceptanceGateProps) => {
 
   const retryAcceptance = async () => {
     setLoading(true);
-    setLoadError(false);
+    setLoadError(null);
     try {
       setAccepted(await checkAcceptance());
     } catch (error) {
       console.error('No se pudo comprobar la aceptación legal:', error);
-      setLoadError(true);
+      setLoadError(getAcceptanceErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -80,7 +100,7 @@ export const LegalAcceptanceGate = ({ children }: LegalAcceptanceGateProps) => {
             No pudimos verificar tus documentos
           </h1>
           <p className="mt-2 text-sm text-warm-700 dark:text-warm-200">
-            Revisa tu conexión e inténtalo de nuevo. No continuaremos hasta comprobar la versión aceptada.
+            {loadError} No continuaremos hasta comprobar la versión aceptada.
           </p>
           <Button onClick={retryAcceptance} loading={loading} className="mt-5">
             Reintentar
