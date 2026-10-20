@@ -180,6 +180,8 @@ export interface ClientConsent {
   clientName: string;
   procedureName: string;
   professionalName: string;
+  professionalCredentials?: string;
+  location?: string;
   consentDate: string;
   clientCedula: string;
   procedureDetails?: string;
@@ -187,9 +189,12 @@ export interface ClientConsent {
   risksAndEffects?: string;
   alternatives?: string;
   aftercare?: string;
-  patientAcknowledged?: boolean;
+  questionsAndAnswers?: string;
+  professionalConfirmedInformation?: boolean;
+  dataAuthorizationVerified?: boolean;
   consentText: string;
   signatureDataURL: string; // Base64 encoded signature image
+  professionalSignatureDataURL?: string;
   signedAt: string;
   userId: string;
   createdAt: Timestamp;

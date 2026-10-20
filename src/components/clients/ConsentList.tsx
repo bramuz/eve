@@ -22,6 +22,11 @@ const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (character) => (
   "'": '&#39;'
 }[character] ?? character));
 
+const signatureImage = (value: string | undefined, label: string) =>
+  value && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(value)
+    ? `<img src="${escapeHtml(value)}" alt="${escapeHtml(label)}" class="signature-image" />`
+    : '<p>Firma no disponible</p>';
+
 const fetchClientConsents = (clientId: string, userId: string) =>
   getDocuments('clientConsents', [
     where('clientId', '==', clientId),
@@ -102,10 +107,12 @@ interface ConsentListProps {
     setConsentToDelete(null);
   };
 
-  const handleDownloadPDF = (consent: ClientConsent) => {
-    const signature = /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(consent.signatureDataURL)
-      ? `<img src="${escapeHtml(consent.signatureDataURL)}" alt="Firma" class="signature-image" />`
-      : '<p>Firma no disponible</p>';
+  const handleDownloadDocument = (consent: ClientConsent) => {
+    const patientSignature = signatureImage(consent.signatureDataURL, 'Firma de la persona');
+    const professionalSignature = signatureImage(
+      consent.professionalSignatureDataURL,
+      'Firma del profesional'
+    );
     const doc = `
 <!DOCTYPE html>
 <html>
@@ -138,7 +145,7 @@ interface ConsentListProps {
   <div class="header">
     <h1>Consentimiento Informado</h1>
     <p>Procedimiento: ${escapeHtml(consent.procedureName)}</p>
-    <p>Paciente: ${escapeHtml(consent.clientName)}</p>
+    <p>Persona: ${escapeHtml(consent.clientName)}</p>
     <p>Fecha: ${format(new Date(consent.signedAt), 'd MMMM yyyy', { locale: es })}</p>
   </div>
   
@@ -146,8 +153,12 @@ interface ConsentListProps {
   
   <div class="signature-section">
     <div class="signature-box">
-      <p><strong>Firma del Paciente</strong></p>
-      ${signature}
+      <p><strong>Firma de la persona</strong></p>
+      ${patientSignature}
+    </div>
+    <div class="signature-box">
+      <p><strong>Firma del profesional</strong></p>
+      ${professionalSignature}
     </div>
   </div>
   
@@ -162,7 +173,8 @@ interface ConsentListProps {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Consentimiento-${consent.procedureName}-${format(new Date(consent.signedAt), 'dd-MM-yyyy')}.html`;
+    const safeProcedureName = consent.procedureName.replace(/[^a-zA-Z0-9-]/g, '-').slice(0, 80);
+    a.download = `Consentimiento-${safeProcedureName}-${format(new Date(consent.signedAt), 'dd-MM-yyyy')}.html`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
@@ -220,9 +232,9 @@ interface ConsentListProps {
                     <Eye className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDownloadPDF(consent)}
+                    onClick={() => handleDownloadDocument(consent)}
                     className="p-2 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 text-green-600 dark:text-green-400 transition-colors"
-                    title="Descargar PDF"
+                    title="Descargar documento para imprimir"
                   >
                     <Download className="w-4 h-4" />
                   </button>
@@ -263,23 +275,39 @@ interface ConsentListProps {
 
             <div>
               <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Firma del Paciente:
+                Firma de la persona:
               </p>
-              <img
-                src={selectedConsent.signatureDataURL}
-                alt="Firma"
-                className="border border-gray-300 dark:border-gray-600 rounded p-2 max-h-40 bg-white"
-              />
+              {/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(selectedConsent.signatureDataURL) ? (
+                <img
+                  src={selectedConsent.signatureDataURL}
+                  alt="Firma de la persona"
+                  className="border border-gray-300 dark:border-gray-600 rounded p-2 max-h-40 bg-white"
+                />
+              ) : <p className="text-sm text-gray-500">Firma no disponible</p>}
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Firma del profesional:
+              </p>
+              {selectedConsent.professionalSignatureDataURL
+                && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(selectedConsent.professionalSignatureDataURL) ? (
+                  <img
+                    src={selectedConsent.professionalSignatureDataURL}
+                    alt="Firma del profesional"
+                    className="border border-gray-300 dark:border-gray-600 rounded p-2 max-h-40 bg-white"
+                  />
+                ) : <p className="text-sm text-gray-500">Firma no disponible</p>}
             </div>
 
             <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
               <Button
-                onClick={() => handleDownloadPDF(selectedConsent)}
+                onClick={() => handleDownloadDocument(selectedConsent)}
                 variant="primary"
                 className="flex-1"
               >
                 <Download className="w-4 h-4 mr-2" />
-                Descargar PDF
+                Descargar documento
               </Button>
               <Button
                 onClick={() => {

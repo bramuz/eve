@@ -1,109 +1,26 @@
-# Correcciones - Sistema de Consentimientos ✅
+# Consentimientos de procedimientos en Stetik
 
-## Problemas Resueltos
+El formulario permite registrar un consentimiento de forma rápida, sin diligenciar todos los detalles en cada atención. El nombre del cliente ya aparece desde su ficha, la fecha se completa automáticamente y el nombre del profesional se precarga desde su cuenta cuando está disponible.
 
-### 1. **Nombre del Cliente - Ahora Editable ✅**
-- Campo Input editable en el formulario
-- Valor inicial: Nombre del cliente (pero editable)
-- Se guarda en la base de datos
+## Flujo rápido
 
-### 2. **Nombre del Profesional - Ahora Disponible ✅**
-- Nuevo campo Input en el formulario
-- Aparece en el consentimiento como "Nombre del profesional"
-- Se guarda en la base de datos
-- Requerido para guardar
+1. Verifica el nombre de la persona y escribe el nombre del procedimiento.
+2. Explica verbalmente los detalles, riesgos y cuidados que correspondan al caso; responde las preguntas y permite que la persona decida libremente.
+3. Confirma que se dio esa explicación y que se verificó por separado la autorización o base legal para guardar los datos.
+4. La persona y el profesional firman.
 
-### 3. **Fecha del Consentimiento - Ahora Editable ✅**
-- Selector de fecha (input type="date")
-- Valor inicial: Fecha actual
-- Editable según necesidad
-- Se incluye en el consentimiento
+La sección **Agregar detalles al documento** es opcional y permite registrar por escrito identificación, credenciales, lugar, descripción, beneficios, riesgos, alternativas, cuidados y preguntas. Úsala si se necesita mayor detalle o si el procedimiento requiere información específica por escrito. No agregues datos genéricos que no correspondan al caso.
 
-### 4. **Guardado en Firebase - Corregido ✅**
-- Cambio: `signedAt` ahora es un string ISO (no Timestamp)
-- Eliminó conflicto con `createdAt` automático
-- Todos los campos se guardan correctamente
-- Logging mejorado para debugging
-- Manejo de errores mejorado
+## Constancias y firmas
 
----
+Antes de guardar, el profesional confirma que explicó la información, respondió preguntas y permitió decidir libremente. La persona y el profesional firman en los espacios respectivos. Estas constancias registran lo que las partes declaran; Stetik no verifica que haya ocurrido.
 
-## Campos Editables en el Formulario
+La casilla sobre datos personales es una confirmación del profesional, no una autorización del paciente. Antes de guardar firmas u otros datos personales —en particular datos sensibles o de salud— el profesional debe informar a la persona y obtener la autorización o contar con la base legal aplicable por separado. La autorización para usar fotografías con fines publicitarios también debe gestionarse aparte.
 
-1. **Nombre del Cliente** ← Editable
-2. **Nombre del Procedimiento** ← Editable
-3. **Nombre del Profesional** ← Editable  
-4. **Fecha del Consentimiento** ← Selector de fecha
+## Límites y conservación
 
----
+El documento base deja constancia de que la información pertinente fue explicada, pero no incluye automáticamente los riesgos particulares de cada procedimiento. El consentimiento del procedimiento no reemplaza la valoración profesional, la historia clínica u otros registros exigidos para la actividad, ni los requisitos particulares de la profesión o procedimiento. Stetik almacena la información que completa el usuario; no valida el contenido, las credenciales, las firmas o la suficiencia jurídica del documento.
 
-## Validaciones Implementadas
+El profesional es responsable de entregar o poner a disposición una copia y de conservar los registros conforme a sus obligaciones. La firma digital dibujada en pantalla es un registro electrónico y no garantiza por sí sola la identidad del firmante ni la validez legal del consentimiento.
 
-Antes de guardar, el sistema verifica:
-- ✅ Nombre del cliente no vacío
-- ✅ Nombre del procedimiento no vacío  
-- ✅ Nombre del profesional no vacío
-- ✅ Fecha seleccionada
-- ✅ Firma digital presente
-- ✅ Usuario autenticado
-
----
-
-## Vista Previa en Tiempo Real
-
-El consentimiento se actualiza automáticamente conforme escribes:
-- Nombre del cliente
-- Procedimiento
-- Profesional
-- Fecha
-
-Esto te permite ver exactamente cómo se verá antes de firmar.
-
----
-
-## Cómo Usar Ahora
-
-### Crear Consentimiento:
-1. **Abre** la tarjeta del cliente
-2. **Cliquea** "Nuevo Consentimiento"
-3. **Edita** el nombre del cliente (si es necesario)
-4. **Ingresa** el nombre del procedimiento (Botox, etc.)
-5. **Ingresa** el nombre del profesional/dermatólogo
-6. **Selecciona** la fecha del consentimiento
-7. **Revisa** la vista previa
-8. **Firma** en el canvas
-9. **Cliquea** "Guardar Consentimiento"
-10. ✅ **¡Guardado!** Aparecerá en tu historial
-
----
-
-## Base de Datos
-
-Cada consentimiento guardado incluye:
-- clientId (ID del cliente)
-- clientName (Nombre del cliente editado)
-- procedureName (Nombre del procedimiento)
-- professionalName (Nombre del profesional)
-- consentDate (Fecha del consentimiento)
-- consentText (Texto completo generado)
-- signatureDataURL (Firma en Base64)
-- signedAt (Timestamp ISO)
-- userId (Tu ID de usuario)
-- createdAt / updatedAt (Automáticos)
-
----
-
-## Descarga e Impresión
-
-1. Cliquea en "Consentimientos (X)" en la tarjeta
-2. Cliquea en el icono **📥 (Descargar)**
-3. Se descarga un archivo HTML
-4. Abre el archivo en el navegador
-5. Usa **Ctrl+P** o **Cmd+P** para imprimir
-6. Selecciona "Guardar como PDF" o imprime a papel
-
----
-
-**¡El sistema está completamente funcional! 🎉**
-
-Todos los campos son editables y se guardan correctamente en Firebase.
+Los documentos firmados pueden consultarse desde el historial del cliente y descargarse como archivo HTML imprimible. Las autorizaciones de tratamiento de datos personales deben conservarse aparte.

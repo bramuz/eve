@@ -13,7 +13,7 @@ const MP_API = 'https://api.mercadopago.com';
 const PREMIUM_PRICE_COP = 19900;
 const GRACE_DAYS = 3;
 const DAY_MS = 24 * 60 * 60 * 1000;
-const LEGAL_TERMS_VERSION = '2026-10-19-v3';
+const LEGAL_TERMS_VERSION = '2026-10-19-v4';
 const LEGAL_PRIVACY_VERSION = '2026-10-19-v3';
 
 export const getLegalAcceptance = onCall(

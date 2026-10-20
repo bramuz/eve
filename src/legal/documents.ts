@@ -1,4 +1,4 @@
-export const LEGAL_TERMS_VERSION = '2026-10-19-v3';
+export const LEGAL_TERMS_VERSION = '2026-10-19-v4';
 export const LEGAL_PRIVACY_VERSION = '2026-10-19-v3';
 
 export const LEGAL_OPERATOR = {
@@ -68,61 +68,63 @@ export const LEGAL_DOCUMENTS = {
     version: LEGAL_TERMS_VERSION,
     sections: [
       {
-        title: 'Proveedor y aceptación',
+        title: '1. Proveedor, ámbito y aceptación',
         paragraphs: [
-          `Stetik es operada por ${LEGAL_OPERATOR.name}, identificado como ${LEGAL_OPERATOR.identification}, con domicilio en ${LEGAL_OPERATOR.address}. Contacto: ${LEGAL_OPERATOR.privacyEmail}. Estos términos deben revisarse jurídicamente antes de considerarse definitivos.`,
-          'Al crear una cuenta o continuar usando el servicio después de aceptar estos términos, usted manifiesta que tiene al menos 18 años, que puede celebrar este acuerdo y que acepta la versión indicada. Si actúa en nombre de un negocio, declara tener facultades para hacerlo.'
+          `Stetik es un servicio operado por ${LEGAL_OPERATOR.name}, identificado con ${LEGAL_OPERATOR.identification}, con domicilio en ${LEGAL_OPERATOR.address}. Para consultas, solicitudes o reclamaciones puede escribir a ${LEGAL_OPERATOR.privacyEmail}.`,
+          'Estos términos regulan el acceso y uso de Stetik por personas ubicadas en Colombia. Al crear una cuenta, marcar la casilla de aceptación o usar el servicio después de aceptar la versión vigente, usted celebra este acuerdo con el operador y declara que tiene al menos 18 años y capacidad para aceptarlo. Si actúa por una empresa o negocio, declara contar con autorización para representarlo.'
         ]
       },
       {
-        title: 'El servicio y sus límites',
+        title: '2. El servicio',
         paragraphs: [
-          'Stetik es una herramienta de gestión para profesionales independientes: puede incluir agenda, clientes, notas, fotografías, consentimientos, ventas, pagos e inventario. Las funciones disponibles pueden cambiar; informaremos los cambios que afecten materialmente el servicio.',
-          'La aplicación no es un servicio de urgencias, no presta atención médica, no valida credenciales profesionales y no sustituye historias clínicas, sistemas contables, asesoría jurídica ni copias de seguridad independientes. El profesional conserva la responsabilidad sobre sus servicios, licencias, decisiones, registros y cumplimiento de los plazos legales de conservación.'
+          'Stetik ofrece herramientas digitales de gestión para profesionales independientes, que pueden incluir agenda, clientes, notas, fotografías, formatos de consentimiento, ventas, pagos e inventario. Las funciones y límites de cada plan se describen en la aplicación y pueden variar según el plan contratado.',
+          'Stetik es una herramienta de gestión y no presta servicios médicos, estéticos, contables ni jurídicos; tampoco verifica licencias, habilitaciones o credenciales profesionales. No reemplaza una historia clínica, los registros profesionales exigidos por la ley ni las copias de respaldo que el usuario deba conservar. El profesional es responsable de sus servicios, decisiones, autorizaciones, registros y obligaciones frente a sus clientes.'
         ]
       },
       {
-        title: 'Cuenta y uso permitido',
+        title: '3. Cuenta y obligaciones del usuario',
         paragraphs: [
-          'Usted debe proporcionar información veraz, custodiar sus credenciales, mantener actualizado su correo y notificarnos cualquier uso no autorizado. Es responsable de la actividad realizada desde su cuenta.',
-          'No cargue información sin autorización o base jurídica válida; no use el servicio para vulnerar derechos de terceros, enviar contenido ilícito, interferir con la plataforma o acceder a cuentas ajenas. No registre información de menores de edad en Stetik.',
-          'Usted conserva sus derechos sobre el contenido que carga y nos autoriza a alojarlo, reproducirlo y procesarlo únicamente en la medida necesaria para prestar, proteger y mantener el servicio.'
+          'El usuario debe proporcionar información veraz y actualizada, mantener la confidencialidad de sus credenciales, proteger sus dispositivos y notificar oportunamente cualquier uso no autorizado de su cuenta. El usuario es responsable de las actividades realizadas desde su cuenta.',
+          'El usuario debe usar Stetik conforme a la ley y a estos términos. No debe acceder a cuentas ajenas, interferir con la seguridad o funcionamiento de la plataforma, cargar contenido ilícito ni vulnerar derechos de otras personas. No se permite registrar en Stetik datos personales de menores de edad.',
+          'El usuario conserva los derechos que tenga sobre la información y el contenido que incorpora. Autoriza a Stetik a alojarlos y procesarlos solo en la medida necesaria para prestar, proteger y mantener las funciones solicitadas.'
         ]
       },
       {
-        title: 'Planes, precio y renovación',
+        title: '4. Planes, precio, cobro y cancelación',
         paragraphs: [
-          'El plan gratuito tiene los límites que se muestran en la aplicación. El plan Premium cuesta actualmente $19.900 COP por mes, cobrado de forma recurrente a través de Mercado Pago. Antes de confirmar el pago, revise en Mercado Pago el importe, la frecuencia y las condiciones que allí se presenten.',
-          'Al autorizar la suscripción en Mercado Pago, usted autoriza los cobros recurrentes según el ciclo indicado allí. La suscripción puede cancelarse en cualquier momento desde la sección Planes de Stetik; la cancelación detiene futuras renovaciones y el acceso Premium se mantiene hasta el final del período ya pagado, salvo que la ley aplicable disponga otra cosa.',
-          'Los derechos de retracto, reversión de pago, garantías, reembolsos y demás derechos del consumidor se respetan en los casos y plazos previstos por la ley colombiana. Esta cláusula no los limita. Cualquier cambio de precio se informará antes de que entre en vigor para una renovación.'
+          'El plan gratuito está sujeto a los límites informados en la aplicación. El plan Premium tiene un precio actual de $19.900 COP por mes. Los pagos recurrentes son procesados por Mercado Pago, que presenta las condiciones de pago y solicita al usuario autorizar la suscripción.',
+          'Al autorizar la suscripción, el usuario acepta que Mercado Pago efectúe el cobro recurrente mensual según las condiciones mostradas al momento de pagar. Stetik no almacena los datos completos de la tarjeta o del medio de pago.',
+          'El usuario puede cancelar la renovación desde la sección Planes de Stetik. Una vez confirmada la cancelación, no se generarán nuevos cobros y el acceso Premium se mantendrá hasta finalizar el período pagado, salvo que la ley aplicable o las condiciones del proveedor de pago dispongan otra cosa. Si la cancelación no puede completarse desde la aplicación, el usuario podrá solicitar asistencia al correo de contacto indicado en estos términos.',
+          'Los cambios de precio se informarán antes de que se apliquen a una renovación. Los derechos de retracto, reversión del pago, garantías y reembolsos que sean aplicables se atenderán de acuerdo con la legislación colombiana; estos términos no limitan derechos irrenunciables del consumidor.'
         ]
       },
       {
-        title: 'Datos personales y contenido de clientes',
+        title: '5. Datos personales y contenido de clientes',
         paragraphs: [
-          'El tratamiento de datos personales por la plataforma se describe en la Política de tratamiento de datos personales. Al usar funciones que guardan datos de clientes, usted actúa como responsable frente a esas personas y debe entregar su propio aviso de privacidad, obtener las autorizaciones necesarias —en especial para datos sensibles— y atender sus solicitudes.',
-          'Usted nos instruye para alojar y procesar esos datos con el fin de operar las funciones solicitadas. No cargue datos que no sean necesarios ni información de personas que no hayan sido debidamente informadas.'
+          'El tratamiento de datos personales por Stetik se describe en la Política de tratamiento de datos personales, que forma parte de las condiciones de uso del servicio.',
+          'Cuando el usuario incorpora datos de sus clientes, el usuario determina las finalidades y actúa como responsable del tratamiento frente a esas personas. Por ello debe suministrarles la información requerida, obtener la autorización o contar con otra base jurídica válida antes de cargar datos, especialmente datos sensibles, y atender sus solicitudes. El usuario instruye a Stetik para alojar y procesar esa información únicamente para prestar las funciones solicitadas. Debe evitar cargar datos innecesarios o información que no esté autorizado a tratar.'
         ]
       },
       {
-        title: 'Disponibilidad, suspensión y terminación',
+        title: '6. Disponibilidad, suspensión y terminación',
         paragraphs: [
-          'Procuramos mantener el servicio disponible, pero puede haber interrupciones por mantenimiento, incidentes o causas fuera de nuestro control. No garantizamos disponibilidad ininterrumpida.',
-          'Podemos restringir temporalmente una cuenta ante riesgos de seguridad, uso ilícito o incumplimientos, procurando informar el motivo y permitir su corrección cuando sea posible. Usted puede dejar de usar el servicio y cancelar su plan desde la sección Planes. La eliminación de cuenta y los plazos de conservación deben solicitarse al contacto del proveedor hasta que exista una función de autoservicio.'
+          'Stetik procurará mantener el servicio disponible, pero pueden ocurrir interrupciones por mantenimiento, incidentes técnicos o causas ajenas al operador. No se garantiza disponibilidad ininterrumpida.',
+          'El operador podrá restringir temporalmente el acceso cuando sea necesario para proteger la seguridad, cumplir la ley o responder a un uso ilícito o incumplimiento de estos términos. Cuando sea posible, informará al usuario el motivo y las medidas para corregir la situación.',
+          'El usuario puede dejar de usar Stetik y cancelar su suscripción según estos términos. Para solicitar la eliminación de la cuenta o ejercer derechos sobre los datos, debe escribir al correo de contacto. La eliminación puede estar sujeta a obligaciones legales de conservación y a los plazos necesarios para atender reclamaciones.'
         ]
       },
       {
-        title: 'Responsabilidad y ley aplicable',
+        title: '7. Responsabilidad y ley aplicable',
         paragraphs: [
-          'Nada en estos términos excluye derechos irrenunciables del consumidor ni responsabilidades que legalmente no puedan excluirse. El uso profesional de la plataforma no convierte a Stetik en prestador de los servicios que usted ofrece a sus clientes.',
-          'Estos términos se rigen por las leyes de Colombia. Las controversias estarán sujetas a las autoridades y jurisdicción competentes, sin perjuicio de los derechos que asisten a consumidores y usuarios.'
+          'El usuario es responsable de la exactitud, legalidad y respaldo del contenido que registra, así como de los servicios que ofrece a sus clientes. El uso de Stetik no convierte al operador en prestador, socio ni representante del usuario frente a sus clientes.',
+          'Nada en estos términos excluye derechos irrenunciables de los consumidores ni responsabilidades que legalmente no puedan limitarse. Estos términos se rigen por las leyes de Colombia, sin perjuicio de las competencias de las autoridades y los derechos legales de los usuarios.'
         ]
       },
       {
-        title: 'Contacto y cambios',
+        title: '8. Contacto, vigencia y modificaciones',
         paragraphs: [
-          `Para consultas o reclamaciones: ${LEGAL_OPERATOR.privacyEmail}. Proveedor: ${LEGAL_OPERATOR.name}; domicilio: ${LEGAL_OPERATOR.address}.`,
-          'La versión vigente, su fecha y su registro de aceptación se conservarán en la aplicación. Si un cambio requiere nueva aceptación, la aplicación la solicitará antes de permitir continuar. La relación de consumo debe revisarse conforme a la Ley 1480 de 2011 y sus modificaciones vigentes.'
+          `Proveedor: ${LEGAL_OPERATOR.name}, ${LEGAL_OPERATOR.identification}. Domicilio: ${LEGAL_OPERATOR.address}. Contacto para consultas, solicitudes o reclamaciones: ${LEGAL_OPERATOR.privacyEmail}.`,
+          'La versión y la fecha de vigencia de estos términos se indican al inicio del documento. El operador podrá modificarlos para reflejar cambios del servicio o de la ley. Cuando una modificación requiera aceptación, Stetik solicitará al usuario aceptarla antes de continuar usando las funciones protegidas. La versión aceptada y la constancia de aceptación se conservarán electrónicamente.'
         ]
       }
     ]
