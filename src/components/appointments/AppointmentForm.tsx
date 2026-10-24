@@ -22,6 +22,7 @@ interface AppointmentFormProps {
 
 interface FormData {
   clientName: string;
+  clientPhone?: string;
   service: string;
   date: string;
   time: string;
@@ -49,7 +50,7 @@ export const AppointmentForm = ({
     defaultValues: appointment
       ? {
           clientName: appointment.clientName,
-          service: appointment.service,
+          clientPhone: appointment.clientPhone ?? '',: appointment.service,
           date: format(appointment.date.toDate(), 'yyyy-MM-dd'),
           time: appointment.time
         }
@@ -97,6 +98,7 @@ export const AppointmentForm = ({
     try {
       const appointmentData = {
         clientName: data.clientName,
+        clientPhone: (data.clientPhone ?? '').trim(),
         service: data.service,
         date: Timestamp.fromDate(new Date(`${data.date}T00:00:00`)),
         time: data.time,
@@ -200,6 +202,14 @@ export const AppointmentForm = ({
         placeholder="Ej: Juan Pérez"
         error={errors.clientName?.message}
         {...register('clientName', { required: 'El nombre del cliente es requerido' })}
+        className="h-12 text-base"
+      />
+
+      <Input
+        label="Teléfono (opcional)"
+        type="tel"
+        placeholder="Ej: 300 123 4567"
+        {...register('clientPhone')}
         className="h-12 text-base"
       />
 
