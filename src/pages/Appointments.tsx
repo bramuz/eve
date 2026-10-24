@@ -9,15 +9,22 @@ import { Modal } from '../components/ui/Modal';
 import { Loading } from '../components/ui/Loading';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { useAuth } from '../context/AuthContext';
+import { usePlan } from '../context/PlanContext';
+import { useNavigate } from 'react-router-dom';
 import { getDocuments, deleteDocument, createDocument, updateDocument, where } from '../firebase/firestore';
 import { Timestamp } from 'firebase/firestore';
 import type { Appointment, SpecialDay } from '../types';
 import { AppointmentForm } from '../components/appointments/AppointmentForm';
 import { SpecialDayForm } from '../components/appointments/SpecialDayForm';
+import { BookingSettings } from '../components/appointments/BookingSettings';
+import { releaseSlot } from '../firebase/booking';
+import { Link2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const Appointments = () => {
   const { currentUser } = useAuth();
+  const { isPremium } = usePlan();
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [specialDays, setSpecialDays] = useState<SpecialDay[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +37,7 @@ export const Appointments = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week'); // Vista semanal o mensual
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [showBookingSettings, setShowBookingSettings] = useState(false);
   const [appointmentToDelete, setAppointmentToDelete] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -203,6 +211,7 @@ export const Appointments = () => {
     if (error) {
       toast.error('Error al eliminar la cita');
     } else {
+      await releaseSlot(appointmentToDelete);
       toast.success('Cita eliminada exitosamente');
       loadAppointments();
     }
@@ -280,6 +289,21 @@ export const Appointments = () => {
           </h1>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => {
+              if (!isPremium) {
+                toast.info('Las reservas online son una función Premium');
+                navigate('/plans');
+                return;
+              }
+              setShowBookingSettings(true);
+            }}
+            className="p-2 sm:px-4 sm:py-2 rounded-xl bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 hover:bg-warm-50 dark:hover:bg-warm-700 transition-colors shadow-sm flex items-center gap-2"
+            title="Link de reservas y disponibilidad"
+          >
+            <Link2 className="w-4 h-4 text-warm-700 dark:text-warm-300" />
+            <span className="hidden sm:inline text-sm font-medium text-warm-700 dark:text-warm-300">Reservas{!isPremium && ' 👑'}</span>
+          </button>
           {/* Toggle Vista */}
           <button
             onClick={() => setViewMode(viewMode === 'week' ? 'month' : 'week')}
@@ -903,6 +927,18 @@ export const Appointments = () => {
       </Modal>
 
       {/* Modal for Special Day */}
+      <Modal
+        isOpen={showBookingSettings}
+        onClose={() => {
+          setShowBookingSettings(false);
+          loadAppointments();
+        }}
+        title="Reservas online"
+        size="lg"
+      >
+        <BookingSettings appointments={appointments} />
+      </Modal>
+
       <Modal
         isOpen={showSpecialDayModal}
         onClose={() => {

@@ -20,6 +20,7 @@ import { Clients } from './pages/Clients';
 import { Notes } from './pages/Notes';
 import { Plans } from './pages/Plans';
 import { LegalPage } from './pages/LegalPage';
+import { PublicBooking } from './pages/PublicBooking';
 
 function App() {
   // Hook para detectar y recargar nuevas versiones automáticamente
@@ -34,6 +35,7 @@ function App() {
           <Routes>
             <Route path="/legal/privacidad" element={<LegalPage />} />
             <Route path="/legal/terminos" element={<LegalPage />} />
+            <Route path="/reservar/:uid" element={<PublicBooking />} />
 
             {/* Public Routes */}
             <Route
