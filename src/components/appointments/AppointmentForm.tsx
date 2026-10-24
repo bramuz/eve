@@ -50,7 +50,8 @@ export const AppointmentForm = ({
     defaultValues: appointment
       ? {
           clientName: appointment.clientName,
-          clientPhone: appointment.clientPhone ?? '',: appointment.service,
+          clientPhone: appointment.clientPhone ?? '',
+          service: appointment.service,
           date: format(appointment.date.toDate(), 'yyyy-MM-dd'),
           time: appointment.time
         }
