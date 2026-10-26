@@ -146,6 +146,7 @@ export const Plans = () => {
       <div className="flex flex-col rounded-2xl border border-warm-200 dark:border-warm-700 bg-white dark:bg-warm-800 p-6">
         <h3 className="text-lg font-semibold text-warm-900 dark:text-white">Gratis</h3>
         <p className="mt-2 text-3xl font-bold text-warm-900 dark:text-white">$0</p>
+        <p className="mt-1 text-sm text-warm-600 dark:text-warm-400">Para empezar, sin costo</p>
         <ul className="mt-5 flex-1 space-y-3">
           {FREE_FEATURES.map((f) => (
             <li key={f} className="flex items-start gap-2 text-sm text-warm-700 dark:text-warm-300">
@@ -153,6 +154,9 @@ export const Plans = () => {
             </li>
           ))}
         </ul>
+        <div className="mt-6 flex h-12 w-full items-center justify-center rounded-2xl border-2 border-warm-200 dark:border-warm-700 text-sm font-semibold text-warm-600 dark:text-warm-300">
+          {isPremium ? 'Plan básico' : 'Tu plan actual'}
+        </div>
       </div>
 
       <div className="flex flex-col rounded-2xl border-2 border-primary-500 bg-white dark:bg-warm-800 p-6">
