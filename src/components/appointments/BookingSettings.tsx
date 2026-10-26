@@ -289,7 +289,9 @@ export const BookingSettings = ({ appointments }: Props) => {
             </div>
           )
         )}
-        <p className="text-xs text-warm-500">Azul = disponible para reservar · Rojo = ya tiene cita.</p>
+        <p className="text-xs text-warm-500">
+          Rosado = disponible para reservar · Blanco = no disponible · Rojo = ya tiene cita.
+        </p>
 
         <div className="flex flex-wrap gap-2">
           <Button size="sm" loading={savingDay} onClick={() => persistDay([selectedKey], draft)}>
