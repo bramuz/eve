@@ -200,14 +200,14 @@ export const Dashboard = () => {
       >
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center justify-center gap-2 mb-1">
             {editingName ? (
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   void saveName();
                 }}
-                className="flex items-center gap-2 min-w-0 flex-1"
+                className="flex items-center justify-center gap-2 min-w-0 w-full"
               >
                 <input
                   autoFocus
@@ -215,7 +215,7 @@ export const Dashboard = () => {
                   maxLength={60}
                   onChange={(e) => setNameDraft(e.target.value)}
                   placeholder="Tu nombre"
-                  className="min-w-0 flex-1 px-3 py-1.5 text-xl font-bold rounded-xl border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-warm-900 dark:text-white"
+                  className="min-w-0 flex-1 px-3 py-1.5 text-xl font-bold text-center rounded-xl border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-warm-900 dark:text-white"
                 />
                 <button
                   type="submit"
@@ -253,7 +253,7 @@ export const Dashboard = () => {
               </>
             )}
           </div>
-          <p className="text-sm text-warm-600 dark:text-warm-400">
+          <p className="text-sm text-center text-warm-600 dark:text-warm-400">
             {format(new Date(), "EEEE, d 'de' MMMM yyyy", { locale: es })}
           </p>
         </div>
