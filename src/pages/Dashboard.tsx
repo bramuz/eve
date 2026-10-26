@@ -5,8 +5,12 @@ import {
   Calendar,
   Users,
   DollarSign,
-  TrendingUp
+  TrendingUp,
+  Pencil,
+  Check,
+  X
 } from 'lucide-react';
+import { updateProfile } from 'firebase/auth';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Loading } from '../components/ui/Loading';
@@ -35,6 +39,30 @@ const toDateSafe = (value: unknown): Date | null => {
 
 export const Dashboard = () => {
   const { currentUser } = useAuth();
+  const [displayName, setDisplayName] = useState(currentUser?.displayName ?? '');
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+  const [savingName, setSavingName] = useState(false);
+
+  const saveName = async () => {
+    const name = nameDraft.trim();
+    if (!currentUser) return;
+    if (name.length < 2) {
+      toast.error('Escribe un nombre de al menos 2 letras');
+      return;
+    }
+    setSavingName(true);
+    try {
+      await updateProfile(currentUser, { displayName: name });
+      setDisplayName(name);
+      setEditingName(false);
+      toast.success('Nombre actualizado');
+    } catch {
+      toast.error('No se pudo actualizar el nombre');
+    } finally {
+      setSavingName(false);
+    }
+  };
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -172,9 +200,59 @@ export const Dashboard = () => {
       >
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-warm-900 dark:text-white mb-1">
-            ¡Hola, {currentUser?.displayName || 'bienvenido'}!
-          </h1>
+          <div className="flex items-center gap-2 mb-1">
+            {editingName ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void saveName();
+                }}
+                className="flex items-center gap-2 min-w-0 flex-1"
+              >
+                <input
+                  autoFocus
+                  value={nameDraft}
+                  maxLength={60}
+                  onChange={(e) => setNameDraft(e.target.value)}
+                  placeholder="Tu nombre"
+                  className="min-w-0 flex-1 px-3 py-1.5 text-xl font-bold rounded-xl border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-warm-900 dark:text-white"
+                />
+                <button
+                  type="submit"
+                  disabled={savingName}
+                  aria-label="Guardar nombre"
+                  className="p-2 rounded-full bg-primary-600 text-white disabled:opacity-50"
+                >
+                  <Check className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingName(false)}
+                  aria-label="Cancelar"
+                  className="p-2 rounded-full text-warm-600 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-700"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </form>
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold text-warm-900 dark:text-white">
+                  ¡Hola, {displayName || 'bienvenido'}!
+                </h1>
+                <button
+                  onClick={() => {
+                    setNameDraft(displayName);
+                    setEditingName(true);
+                  }}
+                  aria-label="Editar nombre"
+                  title="Editar nombre"
+                  className="p-1.5 rounded-full text-warm-500 hover:text-primary-600 hover:bg-warm-100 dark:hover:bg-warm-700"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+              </>
+            )}
+          </div>
           <p className="text-sm text-warm-600 dark:text-warm-400">
             {format(new Date(), "EEEE, d 'de' MMMM yyyy", { locale: es })}
           </p>
