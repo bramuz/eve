@@ -6,7 +6,14 @@ import { ArrowLeft, Check, Crown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { functions } from '../firebase/config';
 import { usePlan } from '../context/PlanContext';
-import { FREE_CLIENT_LIMIT, PREMIUM_PRICE_LABEL } from '../config/plans';
+import {
+  FREE_CLIENT_LIMIT,
+  PREMIUM_PRICE_LABEL,
+  SEMIANNUAL_MONTHLY_LABEL,
+  SEMIANNUAL_SAVINGS_LABEL,
+  SEMIANNUAL_TOTAL_LABEL,
+  type PlanId
+} from '../config/plans';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { LegalFooter } from '../components/layout/LegalFooter';
@@ -19,12 +26,13 @@ const FREE_FEATURES = [
 const PREMIUM_FEATURES = [
   'Clientes ilimitados',
   'Agenda citas de cualquier semana',
+  'Reservas online con link para tus clientes',
   'Todas las funciones actuales y futuras'
 ];
 
 export const Plans = () => {
   const { isPremium, premiumUntil, subscriptionStatus } = usePlan();
-  const [loading, setLoading] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const navigate = useNavigate();
@@ -46,18 +54,18 @@ export const Plans = () => {
     return () => clearTimeout(timer);
   }, [returnedFromPayment, isPremium, setSearchParams]);
 
-  const handleSubscribe = async () => {
-    setLoading(true);
+  const handleSubscribe = async (plan: PlanId) => {
+    setLoadingPlan(plan);
     try {
-      const createSubscription = httpsCallable<{ returnUrl: string }, { url: string }>(
+      const createSubscription = httpsCallable<{ returnUrl: string; plan: PlanId }, { url: string }>(
         functions,
         'createSubscription'
       );
-      const { data } = await createSubscription({ returnUrl: `${window.location.origin}/plans` });
+      const { data } = await createSubscription({ returnUrl: `${window.location.origin}/plans`, plan });
       window.location.assign(data.url);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'No se pudo iniciar la suscripción');
-      setLoading(false);
+      setLoadingPlan(null);
     }
   };
 
@@ -113,8 +121,9 @@ export const Plans = () => {
       {canCancelSubscription && (
         <div className="rounded-xl border border-warm-200 bg-white p-4 dark:border-warm-700 dark:bg-warm-800">
           <p className="text-sm text-warm-700 dark:text-warm-300">
-            Tu suscripción se cobra mensualmente por Mercado Pago. Puedes detener las próximas
-            renovaciones aquí; conservarás el acceso Premium hasta el final del período pagado.
+            Tu suscripción se renueva automáticamente por Mercado Pago (cada mes o cada 6 meses,
+            según el plan elegido). Puedes detener las próximas renovaciones aquí;
+            conservarás el acceso Premium hasta el final del período pagado.
           </p>
           <Button
             variant="outline"
@@ -147,7 +156,7 @@ export const Plans = () => {
       <div className="rounded-2xl border-2 border-primary-500 bg-white dark:bg-warm-800 p-5">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-warm-900 dark:text-white flex items-center gap-2">
-            <Crown className="w-5 h-5 text-primary-600" /> Premium
+            <Crown className="w-5 h-5 text-primary-600" /> Premium mensual
           </h3>
           <span className="font-bold text-primary-600">{PREMIUM_PRICE_LABEL}</span>
         </div>
@@ -159,14 +168,51 @@ export const Plans = () => {
           ))}
         </ul>
         {canStartSubscription && (
-          <Button onClick={handleSubscribe} loading={loading} className="w-full mt-5 h-12">
-            Suscribirme
+          <Button
+            onClick={() => handleSubscribe('monthly')}
+            loading={loadingPlan === 'monthly'}
+            disabled={loadingPlan !== null}
+            className="w-full mt-5 h-12"
+          >
+            Suscribirme mensual
           </Button>
         )}
         {subscriptionStatus === 'pending' && (
           <p className="mt-4 text-sm text-warm-700 dark:text-warm-300">
             Hay una suscripción pendiente. Puedes completar el pago o cancelar la renovación pendiente antes de iniciar otra.
           </p>
+        )}
+      </div>
+
+      <div className="relative rounded-2xl border-2 border-primary-600 bg-primary-50 dark:bg-primary-900/20 p-5">
+        <span className="absolute -top-3 right-4 rounded-full bg-primary-600 px-3 py-1 text-xs font-semibold text-white">
+          Ahorras {SEMIANNUAL_SAVINGS_LABEL}
+        </span>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-lg font-semibold text-warm-900 dark:text-white flex items-center gap-2">
+            <Crown className="w-5 h-5 text-primary-600" /> Premium 6 meses
+          </h3>
+          <span className="font-bold text-primary-600">{SEMIANNUAL_MONTHLY_LABEL}</span>
+        </div>
+        <p className="mt-1 text-sm text-warm-700 dark:text-warm-300">
+          Se cobran los 6 meses de una sola vez: <strong>{SEMIANNUAL_TOTAL_LABEL}</strong>
+        </p>
+        <ul className="mt-3 space-y-2">
+          {PREMIUM_FEATURES.map((f) => (
+            <li key={f} className="flex items-center gap-2 text-warm-700 dark:text-warm-300">
+              <Check className="w-4 h-4 text-primary-600" /> {f}
+            </li>
+          ))}
+        </ul>
+        {canStartSubscription && (
+          <Button
+            onClick={() => handleSubscribe('semiannual')}
+            loading={loadingPlan === 'semiannual'}
+            disabled={loadingPlan !== null}
+            className="w-full mt-5 h-12"
+          >
+            Suscribirme por 6 meses
+          </Button>
         )}
       </div>
 

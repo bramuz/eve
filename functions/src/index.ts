@@ -10,7 +10,11 @@ const db = getFirestore();
 const MP_ACCESS_TOKEN = defineSecret('MP_ACCESS_TOKEN');
 const MP_API = 'https://api.mercadopago.com';
 
-const PREMIUM_PRICE_COP = 19900;
+const PLANS = {
+  monthly: { frequency: 1, amount: 29900, reason: 'Stetik Premium mensual', fallbackDays: 30 },
+  semiannual: { frequency: 6, amount: 149400, reason: 'Stetik Premium 6 meses', fallbackDays: 183 }
+} as const;
+type PlanId = keyof typeof PLANS;
 const GRACE_DAYS = 3;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const LEGAL_TERMS_VERSION = '2026-10-19-v4';
@@ -114,18 +118,24 @@ export const createSubscription = onCall(
       throw new HttpsError('invalid-argument', 'returnUrl inválida.');
     }
 
+    const planId = String(request.data?.plan ?? 'monthly') as PlanId;
+    if (!Object.prototype.hasOwnProperty.call(PLANS, planId)) {
+      throw new HttpsError('invalid-argument', 'Plan inválido.');
+    }
+    const plan = PLANS[planId];
+
     const preapproval = await mpFetch('/preapproval', MP_ACCESS_TOKEN.value(), {
       method: 'POST',
       body: JSON.stringify({
-        reason: 'Stetik Premium',
+        reason: plan.reason,
         external_reference: uid,
         payer_email: email,
         back_url: returnUrl,
         status: 'pending',
         auto_recurring: {
-          frequency: 1,
+          frequency: plan.frequency,
           frequency_type: 'months',
-          transaction_amount: PREMIUM_PRICE_COP,
+          transaction_amount: plan.amount,
           currency_id: 'COP'
         }
       })
@@ -137,7 +147,8 @@ export const createSubscription = onCall(
 
     await db.doc(`users/${uid}`).set({
       subscriptionStatus: preapproval.status,
-      preapprovalId: preapproval.id
+      preapprovalId: preapproval.id,
+      subscriptionPlan: planId
     }, { merge: true });
 
     return { url: preapproval.init_point };
@@ -187,9 +198,10 @@ const syncPreapproval = async (preapprovalId: string, token: string) => {
   };
 
   if (preapproval.status === 'authorized') {
+    const months = Number(preapproval.auto_recurring?.frequency) === 6 ? 'semiannual' : 'monthly';
     const next = preapproval.next_payment_date
       ? new Date(preapproval.next_payment_date).getTime()
-      : Date.now() + 30 * DAY_MS;
+      : Date.now() + PLANS[months].fallbackDays * DAY_MS;
     update.premiumUntil = Timestamp.fromMillis(next + GRACE_DAYS * DAY_MS);
   }
 
