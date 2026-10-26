@@ -149,8 +149,8 @@ export const Plans = () => {
         <p className="mt-1 text-sm text-warm-600 dark:text-warm-400">Para empezar, sin costo</p>
         <ul className="mt-5 flex-1 space-y-3">
           {FREE_FEATURES.map((f) => (
-            <li key={f} className="flex items-start gap-2 text-sm text-warm-700 dark:text-warm-300">
-              <Check className="mt-0.5 w-4 h-4 flex-shrink-0" /> {f}
+            <li key={f} className="grid grid-cols-[1rem_1fr] items-start gap-x-2 text-sm text-left text-warm-700 dark:text-warm-300">
+              <Check className="mt-0.5 w-4 h-4 flex-shrink-0" /> <span>{f}</span>
             </li>
           ))}
         </ul>
@@ -167,8 +167,8 @@ export const Plans = () => {
         <p className="mt-1 text-sm text-warm-600 dark:text-warm-400">Se renueva cada mes</p>
         <ul className="mt-5 flex-1 space-y-3">
           {PREMIUM_FEATURES.map((f) => (
-            <li key={f} className="flex items-start gap-2 text-sm text-warm-700 dark:text-warm-300">
-              <Check className="mt-0.5 w-4 h-4 flex-shrink-0 text-primary-600" /> {f}
+            <li key={f} className="grid grid-cols-[1rem_1fr] items-start gap-x-2 text-sm text-left text-warm-700 dark:text-warm-300">
+              <Check className="mt-0.5 w-4 h-4 flex-shrink-0 text-primary-600" /> <span>{f}</span>
             </li>
           ))}
         </ul>
@@ -202,8 +202,8 @@ export const Plans = () => {
         </p>
         <ul className="mt-5 flex-1 space-y-3">
           {PREMIUM_FEATURES.map((f) => (
-            <li key={f} className="flex items-start gap-2 text-sm text-warm-700 dark:text-warm-300">
-              <Check className="mt-0.5 w-4 h-4 flex-shrink-0 text-primary-600" /> {f}
+            <li key={f} className="grid grid-cols-[1rem_1fr] items-start gap-x-2 text-sm text-left text-warm-700 dark:text-warm-300">
+              <Check className="mt-0.5 w-4 h-4 flex-shrink-0 text-primary-600" /> <span>{f}</span>
             </li>
           ))}
         </ul>
