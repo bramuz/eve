@@ -87,7 +87,7 @@ export const Plans = () => {
   };
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="mx-auto w-full max-w-5xl space-y-6 p-4 pb-24 sm:p-6">
       <div className="flex items-center gap-2">
         <button
           onClick={() => navigate('/dashboard')}
@@ -142,28 +142,29 @@ export const Plans = () => {
         </div>
       )}
 
-      <div className="rounded-2xl border border-warm-200 dark:border-warm-700 bg-white dark:bg-warm-800 p-5">
+      <div className="grid gap-5 md:grid-cols-3 md:items-stretch">
+      <div className="flex flex-col rounded-2xl border border-warm-200 dark:border-warm-700 bg-white dark:bg-warm-800 p-6">
         <h3 className="text-lg font-semibold text-warm-900 dark:text-white">Gratis</h3>
-        <ul className="mt-3 space-y-2">
+        <p className="mt-2 text-3xl font-bold text-warm-900 dark:text-white">$0</p>
+        <ul className="mt-5 flex-1 space-y-3">
           {FREE_FEATURES.map((f) => (
-            <li key={f} className="flex items-center gap-2 text-warm-700 dark:text-warm-300">
-              <Check className="w-4 h-4" /> {f}
+            <li key={f} className="flex items-start gap-2 text-sm text-warm-700 dark:text-warm-300">
+              <Check className="mt-0.5 w-4 h-4 flex-shrink-0" /> {f}
             </li>
           ))}
         </ul>
       </div>
 
-      <div className="rounded-2xl border-2 border-primary-500 bg-white dark:bg-warm-800 p-5">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-warm-900 dark:text-white flex items-center gap-2">
-            <Crown className="w-5 h-5 text-primary-600" /> Premium mensual
-          </h3>
-          <span className="font-bold text-primary-600">{PREMIUM_PRICE_LABEL}</span>
-        </div>
-        <ul className="mt-3 space-y-2">
+      <div className="flex flex-col rounded-2xl border-2 border-primary-500 bg-white dark:bg-warm-800 p-6">
+        <h3 className="text-lg font-semibold text-warm-900 dark:text-white flex items-center gap-2">
+          <Crown className="w-5 h-5 text-primary-600" /> Premium mensual
+        </h3>
+        <p className="mt-2 text-3xl font-bold text-primary-600">{PREMIUM_PRICE_LABEL}</p>
+        <p className="mt-1 text-sm text-warm-600 dark:text-warm-400">Se renueva cada mes</p>
+        <ul className="mt-5 flex-1 space-y-3">
           {PREMIUM_FEATURES.map((f) => (
-            <li key={f} className="flex items-center gap-2 text-warm-700 dark:text-warm-300">
-              <Check className="w-4 h-4 text-primary-600" /> {f}
+            <li key={f} className="flex items-start gap-2 text-sm text-warm-700 dark:text-warm-300">
+              <Check className="mt-0.5 w-4 h-4 flex-shrink-0 text-primary-600" /> {f}
             </li>
           ))}
         </ul>
@@ -172,7 +173,7 @@ export const Plans = () => {
             onClick={() => handleSubscribe('monthly')}
             loading={loadingPlan === 'monthly'}
             disabled={loadingPlan !== null}
-            className="w-full mt-5 h-12"
+            className="w-full mt-6 h-12"
           >
             Suscribirme mensual
           </Button>
@@ -184,23 +185,21 @@ export const Plans = () => {
         )}
       </div>
 
-      <div className="relative rounded-2xl border-2 border-primary-600 bg-primary-50 dark:bg-primary-900/20 p-5">
-        <span className="absolute -top-3 right-4 rounded-full bg-primary-600 px-3 py-1 text-xs font-semibold text-white">
+      <div className="relative flex flex-col rounded-2xl border-2 border-primary-600 bg-primary-50 dark:bg-primary-900/20 p-6">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary-600 px-3 py-1 text-xs font-semibold text-white">
           Ahorras {SEMIANNUAL_SAVINGS_LABEL}
         </span>
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="text-lg font-semibold text-warm-900 dark:text-white flex items-center gap-2">
-            <Crown className="w-5 h-5 text-primary-600" /> Premium 6 meses
-          </h3>
-          <span className="font-bold text-primary-600">{SEMIANNUAL_MONTHLY_LABEL}</span>
-        </div>
+        <h3 className="text-lg font-semibold text-warm-900 dark:text-white flex items-center gap-2">
+          <Crown className="w-5 h-5 text-primary-600" /> Premium 6 meses
+        </h3>
+        <p className="mt-2 text-3xl font-bold text-primary-600">{SEMIANNUAL_MONTHLY_LABEL}</p>
         <p className="mt-1 text-sm text-warm-700 dark:text-warm-300">
-          Se cobran los 6 meses de una sola vez: <strong>{SEMIANNUAL_TOTAL_LABEL}</strong>
+          Pago único de <strong>{SEMIANNUAL_TOTAL_LABEL}</strong> por los 6 meses
         </p>
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-5 flex-1 space-y-3">
           {PREMIUM_FEATURES.map((f) => (
-            <li key={f} className="flex items-center gap-2 text-warm-700 dark:text-warm-300">
-              <Check className="w-4 h-4 text-primary-600" /> {f}
+            <li key={f} className="flex items-start gap-2 text-sm text-warm-700 dark:text-warm-300">
+              <Check className="mt-0.5 w-4 h-4 flex-shrink-0 text-primary-600" /> {f}
             </li>
           ))}
         </ul>
@@ -209,11 +208,12 @@ export const Plans = () => {
             onClick={() => handleSubscribe('semiannual')}
             loading={loadingPlan === 'semiannual'}
             disabled={loadingPlan !== null}
-            className="w-full mt-5 h-12"
+            className="w-full mt-6 h-12"
           >
             Suscribirme por 6 meses
           </Button>
         )}
+      </div>
       </div>
 
       <LegalFooter />
