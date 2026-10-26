@@ -23,6 +23,7 @@ interface AppointmentFormProps {
 interface FormData {
   clientName: string;
   clientPhone?: string;
+  whatsappConsent?: boolean;
   service: string;
   date: string;
   time: string;
@@ -51,6 +52,7 @@ export const AppointmentForm = ({
       ? {
           clientName: appointment.clientName,
           clientPhone: appointment.clientPhone ?? '',
+          whatsappConsent: appointment.whatsappConsent ?? false,
           service: appointment.service,
           date: format(appointment.date.toDate(), 'yyyy-MM-dd'),
           time: appointment.time
@@ -100,8 +102,10 @@ export const AppointmentForm = ({
       const appointmentData = {
         clientName: data.clientName,
         clientPhone: (data.clientPhone ?? '').trim(),
+        whatsappConsent: !!data.whatsappConsent && !!(data.clientPhone ?? '').trim(),
         service: data.service,
         date: Timestamp.fromDate(new Date(`${data.date}T00:00:00`)),
+        dateKey: data.date,
         time: data.time,
         userId: currentUser.uid
       };
@@ -111,10 +115,15 @@ export const AppointmentForm = ({
       if (appointment) {
         // Update existing appointment
         console.log('Actualizando cita existente:', appointment.id);
+        const rescheduled =
+          data.time !== appointment.time
+          || data.date !== format(appointment.date.toDate(), 'yyyy-MM-dd');
         const { error } = await updateDocument(
           'appointments',
           appointment.id,
-          appointmentData
+          rescheduled
+            ? { ...appointmentData, confirmationStatus: 'pendiente', reminderSentAt: null }
+            : appointmentData
         );
 
         if (error) {
@@ -213,6 +222,11 @@ export const AppointmentForm = ({
         {...register('clientPhone')}
         className="h-12 text-base"
       />
+
+      <label className="flex items-start gap-2 text-sm text-warm-700 dark:text-warm-300">
+        <input type="checkbox" className="mt-1" {...register('whatsappConsent')} />
+        <span>El cliente acepta recibir confirmación y recordatorio de su cita por WhatsApp</span>
+      </label>
 
       <Input
         label="Procedimiento/Servicio"

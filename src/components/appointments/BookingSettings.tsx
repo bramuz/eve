@@ -12,6 +12,8 @@ import {
   getBookingLink,
   getBookingProfile,
   getTakenSlots,
+  getNotificationSettings,
+  saveNotificationSettings,
   formatTime12,
   splitAmPm,
   saveBookingProfile,
@@ -46,6 +48,8 @@ export const BookingSettings = ({ appointments }: Props) => {
   const [enabled, setEnabled] = useState(true);
   const [slotMinutes, setSlotMinutes] = useState(60);
   const [servicesText, setServicesText] = useState('');
+  const [whatsappPhone, setWhatsappPhone] = useState('');
+  const [whatsappEnabled, setWhatsappEnabled] = useState(false);
   const [availability, setAvailability] = useState<Record<string, string[]>>({});
   const [taken, setTaken] = useState<Record<string, string[]>>({});
   const [selectedKey, setSelectedKey] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -68,7 +72,7 @@ export const BookingSettings = ({ appointments }: Props) => {
     const set = new Set<string>(taken[selectedKey] ?? []);
     const day = new Date(`${selectedKey}T00:00:00`);
     appointments.forEach((a) => {
-      if (isSameDay(a.date.toDate(), day)) set.add(a.time);
+      if (isSameDay(a.date.toDate(), day) && a.confirmationStatus !== 'cancelada') set.add(a.time);
     });
     return set;
   }, [appointments, taken, selectedKey]);
@@ -77,11 +81,16 @@ export const BookingSettings = ({ appointments }: Props) => {
     if (!uid) return;
     (async () => {
       try {
-        const [profile, avail, locks] = await Promise.all([
+        const [profile, avail, locks, notif] = await Promise.all([
           getBookingProfile(uid),
           getAvailability(uid),
-          getTakenSlots(uid)
+          getTakenSlots(uid),
+          getNotificationSettings(uid)
         ]);
+        if (notif) {
+          setWhatsappPhone(notif.phone);
+          setWhatsappEnabled(notif.whatsappEnabled);
+        }
         if (profile) {
           setBusinessName(profile.businessName);
           setEnabled(profile.enabled);
@@ -105,6 +114,11 @@ export const BookingSettings = ({ appointments }: Props) => {
   const saveProfile = async () => {
     setSavingProfile(true);
     try {
+      await saveNotificationSettings({
+        userId: uid,
+        phone: whatsappPhone.trim(),
+        whatsappEnabled: whatsappEnabled && whatsappPhone.replace(/\D/g, '').length >= 10
+      });
       await saveBookingProfile({
         userId: uid,
         businessName: businessName.trim().slice(0, 100),
@@ -221,6 +235,26 @@ export const BookingSettings = ({ appointments }: Props) => {
           <label className="flex items-center gap-2 text-sm text-warm-800 dark:text-warm-200">
             <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
             Aceptar reservas
+          </label>
+        </div>
+        <div className="rounded-xl border border-warm-200 dark:border-warm-700 p-3 space-y-2">
+          <p className="text-sm font-medium text-warm-800 dark:text-warm-200">Avisos por WhatsApp</p>
+          <input
+            className={inputCls}
+            type="tel"
+            placeholder="Tu WhatsApp (Ej: 300 123 4567)"
+            value={whatsappPhone}
+            maxLength={30}
+            onChange={(e) => setWhatsappPhone(e.target.value)}
+          />
+          <label className="flex items-start gap-2 text-sm text-warm-800 dark:text-warm-200">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={whatsappEnabled}
+              onChange={(e) => setWhatsappEnabled(e.target.checked)}
+            />
+            Avísame por WhatsApp cuando agenden una cita y cuando el cliente confirme o cancele
           </label>
         </div>
         <Button size="sm" loading={savingProfile} onClick={saveProfile}>

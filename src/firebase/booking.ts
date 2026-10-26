@@ -41,6 +41,20 @@ export const getBookingProfile = async (uid: string): Promise<BookingProfile | n
 export const saveBookingProfile = (profile: BookingProfile) =>
   setDoc(doc(db, 'bookingProfiles', profile.userId), profile);
 
+export interface NotificationSettings {
+  userId: string;
+  phone: string;
+  whatsappEnabled: boolean;
+}
+
+export const getNotificationSettings = async (uid: string): Promise<NotificationSettings | null> => {
+  const snap = await getDoc(doc(db, 'notificationSettings', uid));
+  return snap.exists() ? (snap.data() as NotificationSettings) : null;
+};
+
+export const saveNotificationSettings = (settings: NotificationSettings) =>
+  setDoc(doc(db, 'notificationSettings', settings.userId), settings);
+
 export const getAvailability = async (uid: string) => {
   const snap = await getDocs(query(collection(db, 'availability'), where('userId', '==', uid)));
   const map: Record<string, string[]> = {};
@@ -74,6 +88,7 @@ export const getTakenSlots = async (uid: string) => {
 };
 
 export interface BookingInput {
+  whatsappConsent: boolean;
   uid: string;
   dateKey: string;
   time: string;
@@ -107,6 +122,7 @@ export const createPublicBooking = async (input: BookingInput) => {
     paymentStatus: 'pendiente',
     notes: input.notes,
     source: 'online',
+    whatsappConsent: input.whatsappConsent,
     createdAt: now,
     updatedAt: now
   });

@@ -233,6 +233,12 @@ export const paymentWebhook = onRequest(
   }
 );
 
+export {
+  onAppointmentCreated,
+  sendAppointmentReminders,
+  whatsappWebhook
+} from './whatsapp';
+
 const refreshClientCount = async (userId?: string) => {
   if (!userId) return;
   const snap = await db.collection('clients').where('userId', '==', userId).count().get();

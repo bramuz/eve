@@ -26,6 +26,7 @@ export const PublicBooking = () => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [service, setService] = useState('');
+  const [consent, setConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState<{ dateKey: string; time: string } | null>(null);
@@ -88,7 +89,8 @@ export const PublicBooking = () => {
         clientName: name.trim().slice(0, 100),
         clientPhone: phone.trim().slice(0, 30),
         service: service.trim().slice(0, 100),
-        notes: ''
+        notes: '',
+        whatsappConsent: consent
       });
       setDone({ dateKey, time });
     } catch {
@@ -201,6 +203,16 @@ export const PublicBooking = () => {
                     <option key={s} value={s} />
                   ))}
                 </datalist>
+
+                <label className="flex items-start gap-2 text-sm text-warm-700">
+                  <input
+                    type="checkbox"
+                    className="mt-1"
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                  />
+                  <span>Acepto recibir la confirmación y el recordatorio de mi cita por WhatsApp.</span>
+                </label>
 
                 {error && <p className="text-sm text-red-600">{error}</p>}
                 <Button type="submit" fullWidth loading={submitting}>

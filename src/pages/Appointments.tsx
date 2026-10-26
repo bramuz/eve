@@ -679,6 +679,8 @@ export const Appointments = () => {
                                   : 'text-warm-900 dark:text-white'
                               }`}>
                                 {apt.clientName}
+                                {apt.confirmationStatus === 'confirmada' && ' ✅'}
+                                {apt.confirmationStatus === 'cancelada' && ' ❌'}
                               </p>
                               <p className="text-xs text-warm-600 dark:text-warm-400 truncate mt-0.5">
                                 {apt.service}
@@ -837,6 +839,8 @@ export const Appointments = () => {
                               : 'text-warm-900 dark:text-white'
                           }`}>
                             {apt.clientName}
+                            {apt.confirmationStatus === 'confirmada' && ' ✅'}
+                            {apt.confirmationStatus === 'cancelada' && ' ❌'}
                           </p>
                           <p className="text-[10px] text-warm-600 dark:text-warm-400 truncate">
                             {apt.service}

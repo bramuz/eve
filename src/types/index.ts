@@ -66,6 +66,9 @@ export interface Appointment {
   clientId?: string;
   clientName: string;
   clientPhone?: string;
+  whatsappConsent?: boolean;
+  dateKey?: string;
+  confirmationStatus?: 'pendiente' | 'confirmada' | 'cancelada';
   service: string;
   date: Timestamp;
   time: string;
