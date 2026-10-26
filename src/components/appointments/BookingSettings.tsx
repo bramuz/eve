@@ -274,14 +274,13 @@ export const BookingSettings = ({ appointments }: Props) => {
                       onClick={() => toggleSlot(t)}
                       className={`py-1.5 rounded-lg text-sm border ${
                         isBusy
-                          ? 'bg-red-100 text-red-700 border-red-300 cursor-not-allowed line-through'
+                          ? 'bg-red-100 text-red-700 border-red-200 cursor-not-allowed'
                           : on
-                          ? 'bg-green-600 text-white border-green-700 font-semibold shadow-sm'
-                          : 'bg-white dark:bg-warm-800 text-warm-500 dark:text-warm-400 border-warm-300 dark:border-warm-600'
+                          ? 'bg-primary-600 text-white border-primary-600'
+                          : 'bg-white dark:bg-warm-800 text-warm-700 dark:text-warm-300 border-warm-300 dark:border-warm-600'
                       }`}
                       title={isBusy ? 'Ocupado por una cita' : on ? 'Disponible para reservar' : 'No disponible'}
                     >
-                      {on && !isBusy && '✓ '}
                       {formatTime12(t)}
                     </button>
                   );
@@ -292,7 +291,7 @@ export const BookingSettings = ({ appointments }: Props) => {
         )}
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-warm-600 dark:text-warm-300">
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded bg-green-600 inline-block" /> Disponible para reservar
+            <span className="w-3 h-3 rounded bg-primary-600 inline-block" /> Disponible para reservar
           </span>
           <span className="flex items-center gap-1">
             <span className="w-3 h-3 rounded bg-white border border-warm-300 inline-block" /> No disponible
