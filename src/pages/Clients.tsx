@@ -43,19 +43,15 @@ export const Clients = () => {
 
     setLoading(true);
     
-    // Cargar clientes
-    const { data: clientsData, error: clientsError } = await getDocuments('clients', [
-      where('userId', '==', currentUser.uid)
-    ]);
-
-    // Cargar servicios de clientes
-    const { data: servicesData, error: servicesError } = await getDocuments('clientServices', [
-      where('userId', '==', currentUser.uid)
-    ]);
-
-    // Cargar pagos independientes
-    const { data: paymentsData } = await getDocuments('clientPayments', [
-      where('userId', '==', currentUser.uid)
+    const uid = currentUser.uid;
+    const [
+      { data: clientsData, error: clientsError },
+      { data: servicesData, error: servicesError },
+      { data: paymentsData }
+    ] = await Promise.all([
+      getDocuments('clients', [where('userId', '==', uid)]),
+      getDocuments('clientServices', [where('userId', '==', uid)]),
+      getDocuments('clientPayments', [where('userId', '==', uid)])
     ]);
 
     if (clientsError || servicesError) {

@@ -85,9 +85,17 @@ export const Dashboard = () => {
     try {
       setLoading(true);
       
-      // Get all appointments
-      const { data: appointments, error: apptError } = await getDocuments('appointments', [
-        where('userId', '==', currentUser.uid)
+      const uid = currentUser.uid;
+      const [
+        { data: appointments, error: apptError },
+        { data: clients, error: clientError },
+        { data: clientServices, error: servicesError },
+        { data: clientPayments, error: paymentsError }
+      ] = await Promise.all([
+        getDocuments('appointments', [where('userId', '==', uid)]),
+        getDocuments('clients', [where('userId', '==', uid)]),
+        getDocuments('clientServices', [where('userId', '==', uid)]),
+        getDocuments('clientPayments', [where('userId', '==', uid)])
       ]);
 
       if (apptError) {
@@ -97,24 +105,9 @@ export const Dashboard = () => {
         return;
       }
 
-      // Get all clients
-      const { data: clients, error: clientError } = await getDocuments('clients', [
-        where('userId', '==', currentUser.uid)
-      ]);
-
       if (clientError) {
         console.error('Error al cargar clientes:', clientError);
       }
-
-      // Get all client services
-      const { data: clientServices, error: servicesError } = await getDocuments('clientServices', [
-        where('userId', '==', currentUser.uid)
-      ]);
-
-      // Get all independent client payments (abonos)
-      const { data: clientPayments, error: paymentsError } = await getDocuments('clientPayments', [
-        where('userId', '==', currentUser.uid)
-      ]);
 
       if (servicesError) {
         console.error('Error al cargar servicios:', servicesError);
