@@ -13,7 +13,7 @@ const SECRETS = [WA_TOKEN, WA_PHONE_ID, WA_VERIFY_TOKEN, WA_APP_SECRET];
 
 const GRAPH_API = 'https://graph.facebook.com/v21.0';
 const TZ = 'America/Bogota';
-const LANG = 'es';
+const LANG = 'es_CO';
 
 // Nombres de las plantillas aprobadas en Meta (ver guía de configuración).
 const TEMPLATES = {
