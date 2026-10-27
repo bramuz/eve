@@ -348,7 +348,7 @@ export const Appointments = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-warm-400 dark:text-warm-500" />
           <input
             type="text"
-            placeholder="Buscar por nombre del cliente..."
+            placeholder="Buscar por nombre del usuario..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-12 py-3 bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 rounded-2xl text-warm-900 dark:text-white placeholder-warm-400 dark:placeholder-warm-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm"

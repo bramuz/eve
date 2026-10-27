@@ -90,7 +90,7 @@ export const Clients = () => {
     if (!clientToDelete || !currentUser) return;
 
     try {
-      // Eliminar todos los servicios del cliente
+      // Eliminar todos los servicios del usuario
       const clientServicesToDelete = clientServices.filter(
         service => service.clientId === clientToDelete.id
       );
@@ -99,7 +99,7 @@ export const Clients = () => {
         await deleteDocument('clientServices', service.id);
       }
 
-      // Eliminar todos los pagos del cliente
+      // Eliminar todos los pagos del usuario
       const clientPaymentsToDelete = clientPayments.filter(
         payment => payment.clientId === clientToDelete.id
       );
@@ -108,7 +108,7 @@ export const Clients = () => {
         await deleteDocument('clientPayments', payment.id);
       }
 
-      // Eliminar todas las notas del cliente
+      // Eliminar todas las notas del usuario
       const { data: clientNotesToDelete } = await getDocuments('notes', [
         where('clientId', '==', clientToDelete.id),
         where('userId', '==', currentUser.uid)
@@ -126,7 +126,7 @@ export const Clients = () => {
       if (photosError) throw new Error(photosError);
       for (const photo of clientPhotos || []) {
         if (!('storagePath' in photo) || typeof photo.storagePath !== 'string') {
-          throw new Error('No se encontró la ruta de una foto del cliente');
+          throw new Error('No se encontró la ruta de una foto del usuario');
         }
         const storagePath = photo.storagePath;
         await deleteObject(ref(storage, storagePath));
@@ -134,17 +134,17 @@ export const Clients = () => {
         if (photoDeleteError) throw new Error(photoDeleteError);
       }
 
-      // Eliminar el cliente
+      // Eliminar el usuario
       const { error } = await deleteDocument('clients', clientToDelete.id);
 
       if (error) {
-        toast.error('Error al eliminar el cliente');
+        toast.error('Error al eliminar el usuario');
       } else {
         toast.success(`${clientToDelete.name} eliminado correctamente`);
         loadData();
       }
     } catch (error) {
-      toast.error('Error al eliminar el cliente');
+      toast.error('Error al eliminar el usuario');
       console.error('Error:', error);
     } finally {
       setShowConfirmDelete(false);
@@ -152,7 +152,7 @@ export const Clients = () => {
     }
   };
 
-  // Calcular estadísticas por cliente
+  // Calcular estadísticas por usuario
   const getClientStats = (clientId: string) => {
     const services = clientServices.filter(service => service.clientId === clientId);
     const payments = clientPayments.filter(payment => payment.clientId === clientId);
@@ -167,7 +167,7 @@ export const Clients = () => {
     return { total, paid, pending, servicesCount: services.length, lastService };
   };
 
-  // Filtrar clientes por búsqueda
+  // Filtrar usuarios por búsqueda
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (client.phone && client.phone.includes(searchTerm))
@@ -176,7 +176,7 @@ export const Clients = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loading size="lg" text="Cargando clientes..." />
+        <Loading size="lg" text="Cargando usuarios..." />
       </div>
     );
   }
@@ -192,10 +192,10 @@ export const Clients = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Clientes
+              Usuarios
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {clients.length} {clients.length === 1 ? 'cliente' : 'clientes'} registrados
+              {clients.length} {clients.length === 1 ? 'usuario' : 'usuarios'} registrados
             </p>
           </div>
           <Button onClick={() => setShowModal(true)} className="rounded-full h-14 w-14">
@@ -221,12 +221,12 @@ export const Clients = () => {
             <Card className="p-8 text-center rounded-2xl">
               <User className="w-16 h-16 mx-auto text-gray-400 mb-4" />
               <p className="text-gray-600 dark:text-gray-400 mb-2">
-                {searchTerm ? 'No se encontraron clientes' : 'No hay clientes registrados'}
+                {searchTerm ? 'No se encontraron usuarios' : 'No hay usuarios registrados'}
               </p>
               {!searchTerm && (
                 <Button onClick={() => setShowModal(true)} variant="outline" className="mt-4">
                   <Plus className="w-5 h-5 mr-2" />
-                  Agregar primer cliente
+                  Agregar primer usuario
                 </Button>
               )}
             </Card>
@@ -263,7 +263,7 @@ export const Clients = () => {
                             <button
                               onClick={(e) => handleDeleteClient(client, e)}
                               className="flex-shrink-0 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
-                              aria-label="Eliminar cliente"
+                              aria-label="Eliminar usuario"
                             >
                               <Trash2 className="w-5 h-5" />
                             </button>
@@ -328,7 +328,7 @@ export const Clients = () => {
           setShowModal(false);
           setSelectedClient(null);
         }}
-        title={selectedClient ? 'Editar Cliente' : 'Nuevo Cliente'}
+        title={selectedClient ? 'Editar Usuario' : 'Nuevo Usuario'}
       >
         <ClientForm
           client={selectedClient}
@@ -348,7 +348,7 @@ export const Clients = () => {
           setShowDetailsModal(false);
           setSelectedClient(null);
         }}
-        title="Tarjeta del Cliente"
+        title="Tarjeta del Usuario"
         size="lg"
       >
         {selectedClient && (
@@ -366,8 +366,8 @@ export const Clients = () => {
       {/* Confirm Delete Dialog */}
       <ConfirmDialog
         isOpen={showConfirmDelete}
-        title="Eliminar Cliente"
-        message={clientToDelete ? `¿Estás seguro de eliminar a ${clientToDelete.name}?\n\nEsto eliminará:\n• El cliente\n• Todos sus procedimientos\n• Todo su historial de pagos\n\nEsta acción no se puede deshacer.` : ''}
+        title="Eliminar Usuario"
+        message={clientToDelete ? `¿Estás seguro de eliminar a ${clientToDelete.name}?\n\nEsto eliminará:\n• El usuario\n• Todos sus procedimientos\n• Todo su historial de pagos\n\nEsta acción no se puede deshacer.` : ''}
         confirmText="Eliminar"
         cancelText="Cancelar"
         variant="danger"

@@ -202,14 +202,14 @@ export const SaleForm = ({ sale, onSuccess, onCancel }: SaleFormProps) => {
       {/* Client Selection */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Cliente (Opcional)
+          Usuario (Opcional)
         </label>
         <select
           {...register('clientId')}
           onChange={(e) => handleClientChange(e.target.value)}
           className="input"
         >
-          <option value="">Sin cliente</option>
+          <option value="">Sin usuario</option>
           {clients.map((client) => (
             <option key={client.id} value={client.id}>
               {client.name}{client.phone ? ` - ${client.phone}` : ''}

@@ -14,7 +14,7 @@ export const MobileLayout = ({ children }: MobileLayoutProps) => {
   const navigation = [
     { name: 'Inicio', href: '/dashboard', icon: Home },
     { name: 'Citas', href: '/appointments', icon: Calendar },
-    { name: 'Clientes', href: '/clients', icon: Users },
+    { name: 'Usuarios', href: '/clients', icon: Users },
     { name: 'Notas', href: '/notes', icon: StickyNote },
   ];
 

@@ -148,7 +148,7 @@ export const Sales = () => {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <Input
-              placeholder="Buscar por cliente..."
+              placeholder="Buscar por usuario..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               icon={<Search className="w-5 h-5" />}
@@ -181,7 +181,7 @@ export const Sales = () => {
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {sale.clientName || 'Cliente anónimo'}
+                      {sale.clientName || 'Usuario anónimo'}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {format(sale.createdAt.toDate(), "dd 'de' MMMM, yyyy", {

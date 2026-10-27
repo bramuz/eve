@@ -59,9 +59,9 @@ export const ClientForm = ({ client, clientCount = 0, onSuccess, onCancel }: Cli
 
         if (error) {
           setError(error);
-          toast.error('Error al actualizar el cliente');
+          toast.error('Error al actualizar el usuario');
         } else {
-          toast.success('Cliente actualizado exitosamente');
+          toast.success('Usuario actualizado exitosamente');
           onSuccess();
         }
       } else {
@@ -70,9 +70,9 @@ export const ClientForm = ({ client, clientCount = 0, onSuccess, onCancel }: Cli
 
         if (error) {
           setError(error);
-          toast.error('Error al crear el cliente');
+          toast.error('Error al crear el usuario');
         } else {
-          toast.success('Cliente creado exitosamente');
+          toast.success('Usuario creado exitosamente');
           onSuccess();
         }
       }
@@ -90,7 +90,7 @@ export const ClientForm = ({ client, clientCount = 0, onSuccess, onCancel }: Cli
 
       {limitReached && (
         <Alert variant="warning">
-          Llegaste al límite de {clientLimit} clientes del plan gratis.{' '}
+          Llegaste al límite de {clientLimit} usuarios del plan gratis.{' '}
           <Link to="/plans" className="font-semibold underline">
             Pásate a Premium
           </Link>{' '}
@@ -117,7 +117,7 @@ export const ClientForm = ({ client, clientCount = 0, onSuccess, onCancel }: Cli
           Cancelar
         </Button>
         <Button type="submit" loading={loading} disabled={limitReached}>
-          {client ? 'Actualizar' : 'Crear'} Cliente
+          {client ? 'Actualizar' : 'Crear'} Usuario
         </Button>
       </div>
     </form>

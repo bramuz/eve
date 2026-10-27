@@ -19,14 +19,14 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { LegalFooter } from '../components/layout/LegalFooter';
 
 const FREE_FEATURES = [
-  `Hasta ${FREE_CLIENT_LIMIT} clientes`,
+  `Hasta ${FREE_CLIENT_LIMIT} usuarios`,
   'Agenda citas desde hoy hasta 7 días adelante'
 ];
 
 const PREMIUM_FEATURES = [
-  'Clientes ilimitados',
+  'Usuarios ilimitados',
   'Agenda citas de cualquier semana',
-  'Reservas online con link para tus clientes',
+  'Reservas online con link para tus usuarios',
   'Todas las funciones actuales y futuras'
 ];
 

@@ -170,8 +170,8 @@ export interface Note {
   color: string; // Color para categorización visual
   isPinned: boolean; // Notas importantes fijadas al inicio
   category?: string; // Categoría opcional (Ej: "Personal", "Trabajo", "Ideas")
-  clientId?: string; // Cliente asociado opcional
-  clientName?: string; // Nombre del cliente asociado opcional
+  clientId?: string; // Usuario asociado opcional
+  clientName?: string; // Nombre del usuario asociado opcional
   userId: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;

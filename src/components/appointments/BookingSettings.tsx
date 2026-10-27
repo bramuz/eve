@@ -194,7 +194,7 @@ export const BookingSettings = ({ appointments }: Props) => {
     <div className="space-y-6">
       <section className="space-y-3">
         <p className="text-sm text-warm-600 dark:text-warm-300">
-          Envía este link a tus clientes. Solo verán los días y horas que dejes disponibles.
+          Envía este link a tus usuarios. Solo verán los días y horas que dejes disponibles.
         </p>
         <div className="flex gap-2">
           <input readOnly value={link} className={inputCls} onFocus={(e) => e.target.select()} />
@@ -208,7 +208,7 @@ export const BookingSettings = ({ appointments }: Props) => {
 
         <input
           className={inputCls}
-          placeholder="Nombre que verán tus clientes"
+          placeholder="Nombre que verán tus usuarios"
           value={businessName}
           maxLength={100}
           onChange={(e) => setBusinessName(e.target.value)}
@@ -254,7 +254,7 @@ export const BookingSettings = ({ appointments }: Props) => {
               checked={whatsappEnabled}
               onChange={(e) => setWhatsappEnabled(e.target.checked)}
             />
-            Avísame por WhatsApp cuando agenden una cita y cuando el cliente confirme o cancele
+            Avísame por WhatsApp cuando agenden una cita y cuando el usuario confirme o cancele
           </label>
         </div>
         <Button size="sm" loading={savingProfile} onClick={saveProfile}>

@@ -138,7 +138,7 @@ export const Notes = () => {
 
   // Filtrar y ordenar notas
   const personalNotes = useMemo(() => {
-    // Solo notas personales: no asociadas a clientes
+    // Solo notas personales: no asociadas a usuarios
     return notes.filter((note) => !note.clientId);
   }, [notes]);
 
@@ -350,7 +350,7 @@ export const Notes = () => {
                       )}
                       {note.clientName && (
                         <span className="text-xs font-medium text-primary-700 bg-primary-100 px-2 py-1 rounded-full">
-                          Cliente: {note.clientName}
+                          Usuario: {note.clientName}
                         </span>
                       )}
                     </div>

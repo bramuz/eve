@@ -208,10 +208,10 @@ export const AppointmentForm = ({
       )}
 
       <Input
-        label="Nombre del Cliente"
+        label="Nombre del Usuario"
         placeholder="Ej: Juan Pérez"
         error={errors.clientName?.message}
-        {...register('clientName', { required: 'El nombre del cliente es requerido' })}
+        {...register('clientName', { required: 'El nombre del usuario es requerido' })}
         className="h-12 text-base"
       />
 
@@ -225,7 +225,7 @@ export const AppointmentForm = ({
 
       <label className="flex items-start gap-2 text-sm text-warm-700 dark:text-warm-300">
         <input type="checkbox" className="mt-1" {...register('whatsappConsent')} />
-        <span>El cliente acepta recibir confirmación y recordatorio de su cita por WhatsApp</span>
+        <span>El usuario acepta recibir confirmación y recordatorio de su cita por WhatsApp</span>
       </label>
 
       <Input

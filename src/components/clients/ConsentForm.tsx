@@ -205,7 +205,7 @@ export const ConsentForm = ({ clientId, clientName, onSuccess, onCancel }: Conse
     }
 
     if (!editClientName.trim()) {
-      toast.error('Por favor ingresa el nombre del cliente');
+      toast.error('Por favor ingresa el nombre del usuario');
       return;
     }
 
@@ -300,7 +300,7 @@ export const ConsentForm = ({ clientId, clientName, onSuccess, onCancel }: Conse
   };
 
   const consentPreview = getConsentTemplate({
-    clientName: editClientName || '[Nombre del cliente]',
+    clientName: editClientName || '[Nombre del usuario]',
     procedureName: procedureName || '[Nombre del procedimiento]',
     professionalName: professionalName || '[Nombre del profesional]',
     professionalCredentials,
@@ -327,11 +327,11 @@ export const ConsentForm = ({ clientId, clientName, onSuccess, onCancel }: Conse
       {/* Client Name Input */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Nombre del Cliente *
+          Nombre del Usuario *
         </label>
         <Input
           type="text"
-          placeholder="Nombre del cliente/paciente"
+          placeholder="Nombre del usuario/paciente"
           value={editClientName}
           onChange={(e) => setEditClientName(e.target.value)}
           className="w-full"

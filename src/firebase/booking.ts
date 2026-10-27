@@ -76,7 +76,7 @@ export const saveDayAvailability = async (uid: string, dateKey: string, times: s
   }
 };
 
-// Horarios ya reservados por clientes, por fecha.
+// Horarios ya reservados por usuarios, por fecha.
 export const getTakenSlots = async (uid: string) => {
   const snap = await getDocs(query(collection(db, 'slotLocks'), where('userId', '==', uid)));
   const map: Record<string, string[]> = {};

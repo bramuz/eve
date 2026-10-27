@@ -191,7 +191,7 @@ interface ConsentListProps {
         <EmptyState
           icon={<Eye className="w-10 h-10" />}
           title="Sin consentimientos"
-          description="No hay consentimientos registrados para este cliente"
+          description="No hay consentimientos registrados para este usuario"
         />
         <Button onClick={onClose} variant="outline" className="w-full mt-4">
           Cerrar

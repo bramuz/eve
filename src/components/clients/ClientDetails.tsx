@@ -74,7 +74,7 @@ export const ClientDetails = ({ client, onClose, onUpdate }: ClientDetailsProps)
       where('userId', '==', currentUser.uid)
     ]);
 
-    // Cargar notas del cliente
+    // Cargar notas del usuario
     const { data: notesData, error: notesError } = await getDocuments('notes', [
       where('clientId', '==', client.id),
       where('userId', '==', currentUser.uid)
@@ -276,38 +276,38 @@ export const ClientDetails = ({ client, onClose, onUpdate }: ClientDetailsProps)
 
   const confirmDeleteClient = async () => {
     try {
-      // Eliminar todos los servicios del cliente
+      // Eliminar todos los servicios del usuario
       for (const service of services) {
         await deleteDocument('clientServices', service.id);
       }
 
-      // Eliminar todos los pagos del cliente
+      // Eliminar todos los pagos del usuario
       for (const payment of payments) {
         await deleteDocument('clientPayments', payment.id);
       }
 
-      // Eliminar todas las notas del cliente
+      // Eliminar todas las notas del usuario
       for (const note of clientNotes) {
         await deleteDocument('notes', note.id);
       }
 
-      // Eliminar todos los consentimientos del cliente
+      // Eliminar todos los consentimientos del usuario
       for (const consent of consents) {
         await deleteDocument('clientConsents', consent.id);
       }
 
-      // Eliminar el cliente
+      // Eliminar el usuario
       const { error } = await deleteDocument('clients', client.id);
 
       if (error) {
-        toast.error('Error al eliminar el cliente');
+        toast.error('Error al eliminar el usuario');
       } else {
         toast.success(`${client.name} eliminado correctamente`);
         onClose();
         onUpdate();
       }
     } catch (error) {
-      toast.error('Error al eliminar el cliente');
+      toast.error('Error al eliminar el usuario');
       console.error('Error:', error);
     } finally {
       setShowConfirmDeleteClient(false);
@@ -406,7 +406,7 @@ export const ClientDetails = ({ client, onClose, onUpdate }: ClientDetailsProps)
             className="flex-1 min-w-fit text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
           >
             <Trash2 className="w-5 h-5 mr-2" />
-            Eliminar Cliente
+            Eliminar Usuario
           </Button>
         </div>
       </div>
@@ -438,7 +438,7 @@ export const ClientDetails = ({ client, onClose, onUpdate }: ClientDetailsProps)
                 No hay procedimientos registrados
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-500">
-                Agrega el primer procedimiento para este cliente
+                Agrega el primer procedimiento para este usuario
               </p>
             </Card>
           ) : (
@@ -660,8 +660,8 @@ export const ClientDetails = ({ client, onClose, onUpdate }: ClientDetailsProps)
             <Card className="p-6 rounded-2xl">
               <EmptyState
                 icon={<StickyNote className="w-10 h-10" />}
-                title="Sin notas para este cliente"
-                description="Guarda aquí todo lo importante para el seguimiento del cliente"
+                title="Sin notas para este usuario"
+                description="Guarda aquí todo lo importante para el seguimiento del usuario"
               />
             </Card>
           ) : (
@@ -727,7 +727,7 @@ export const ClientDetails = ({ client, onClose, onUpdate }: ClientDetailsProps)
           setShowNoteModal(false);
           setSelectedNote(null);
         }}
-        title={selectedNote ? 'Editar Nota del Cliente' : 'Nueva Nota del Cliente'}
+        title={selectedNote ? 'Editar Nota del Usuario' : 'Nueva Nota del Usuario'}
       >
         <NoteForm
           note={selectedNote}
@@ -744,8 +744,8 @@ export const ClientDetails = ({ client, onClose, onUpdate }: ClientDetailsProps)
       {/* Confirm Delete Client Dialog */}
       <ConfirmDialog
         isOpen={showConfirmDeleteClient}
-        title="Eliminar Cliente"
-        message={`¿Estás seguro de eliminar a ${client.name}?\n\nEsto eliminará:\n• El cliente\n• Todos sus procedimientos (${services.length})\n• Todo su historial de abonos (${payments.length})\n• Todas sus notas (${clientNotes.length})\n\nEsta acción no se puede deshacer.`}
+        title="Eliminar Usuario"
+        message={`¿Estás seguro de eliminar a ${client.name}?\n\nEsto eliminará:\n• El usuario\n• Todos sus procedimientos (${services.length})\n• Todo su historial de abonos (${payments.length})\n• Todas sus notas (${clientNotes.length})\n\nEsta acción no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
         variant="danger"

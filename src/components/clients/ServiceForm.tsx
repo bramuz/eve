@@ -108,7 +108,7 @@ export const ServiceForm = ({ clientId, clientName, service, onSuccess, onCancel
 
       <div className="p-4 bg-gradient-to-r from-primary-50 to-purple-50 dark:from-primary-900/20 dark:to-purple-900/20 rounded-xl">
         <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Cliente: <span className="text-primary-600 dark:text-primary-400">{clientName}</span>
+          Usuario: <span className="text-primary-600 dark:text-primary-400">{clientName}</span>
         </p>
       </div>
 

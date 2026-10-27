@@ -120,7 +120,7 @@ export const ClientPaymentForm = ({
       {/* Client Info */}
       <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl">
         <p className="text-sm font-medium text-gray-700 dark:text-gray-300 break-words">
-          Cliente: <span className="text-green-600 dark:text-green-400">{clientName}</span>
+          Usuario: <span className="text-green-600 dark:text-green-400">{clientName}</span>
         </p>
       </div>
 

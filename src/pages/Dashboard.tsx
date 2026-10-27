@@ -106,7 +106,7 @@ export const Dashboard = () => {
       }
 
       if (clientError) {
-        console.error('Error al cargar clientes:', clientError);
+        console.error('Error al cargar usuarios:', clientError);
       }
 
       if (servicesError) {
@@ -114,7 +114,7 @@ export const Dashboard = () => {
       }
 
       if (paymentsError) {
-        console.error('Error al cargar abonos de clientes:', paymentsError);
+        console.error('Error al cargar abonos de usuarios:', paymentsError);
       }
 
       if (!appointments) {
@@ -279,7 +279,7 @@ export const Dashboard = () => {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs text-warm-700 dark:text-warm-300 font-semibold mb-1.5 uppercase tracking-wide">
-                  Total Clientes
+                  Total Usuarios
                 </p>
                 <p className="text-3xl font-bold text-warm-800 dark:text-warm-200">
                   {stats.totalClients}
