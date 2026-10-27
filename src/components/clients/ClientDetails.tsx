@@ -61,71 +61,68 @@ export const ClientDetails = ({ client, onClose, onUpdate }: ClientDetailsProps)
     if (!currentUser) return;
 
     setLoading(true);
-    
-    // Cargar servicios
-    const { data: servicesData, error: servicesError } = await getDocuments('clientServices', [
+
+    const q = () => [
       where('clientId', '==', client.id),
       where('userId', '==', currentUser.uid)
-    ]);
+    ];
+    const millis = (v: any) => (typeof v?.toMillis === 'function' ? v.toMillis() : 0);
 
-    // Cargar pagos independientes
-    const { data: paymentsData, error: paymentsError } = await getDocuments('clientPayments', [
-      where('clientId', '==', client.id),
-      where('userId', '==', currentUser.uid)
-    ]);
+    try {
+      const [
+        { data: servicesData, error: servicesError },
+        { data: paymentsData, error: paymentsError },
+        { data: notesData, error: notesError },
+        { data: consentsData, error: consentsError }
+      ] = await Promise.all([
+        getDocuments('clientServices', q()),
+        getDocuments('clientPayments', q()),
+        getDocuments('notes', q()),
+        getDocuments('clientConsents', q())
+      ]);
 
-    // Cargar notas del usuario
-    const { data: notesData, error: notesError } = await getDocuments('notes', [
-      where('clientId', '==', client.id),
-      where('userId', '==', currentUser.uid)
-    ]);
+      if (servicesError) {
+        toast.error('Error al cargar los servicios');
+      } else {
+        setServices(
+          [...(servicesData as ClientService[])].sort((a, b) => millis(b.date) - millis(a.date))
+        );
+      }
 
-    if (servicesError) {
-      toast.error('Error al cargar los servicios');
-    } else {
-      const sortedServices = (servicesData as ClientService[]).sort(
-        (a, b) => b.date.toMillis() - a.date.toMillis()
-      );
-      setServices(sortedServices);
+      if (paymentsError) {
+        console.error('Error al cargar los pagos:', paymentsError);
+        setPayments([]);
+      } else {
+        setPayments(
+          [...((paymentsData || []) as ClientPayment[])].sort((a, b) => millis(b.date) - millis(a.date))
+        );
+      }
+
+      if (notesError) {
+        console.error('Error al cargar las notas:', notesError);
+        setClientNotes([]);
+      } else {
+        setClientNotes(
+          [...((notesData || []) as Note[])].sort((a, b) => millis(b.updatedAt) - millis(a.updatedAt))
+        );
+      }
+
+      if (consentsError) {
+        console.error('Error al cargar los consentimientos:', consentsError);
+        setConsents([]);
+      } else {
+        setConsents(
+          [...((consentsData || []) as ClientConsent[])].sort(
+            (a, b) => new Date(b.signedAt).getTime() - new Date(a.signedAt).getTime()
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error al cargar los datos del usuario:', error);
+      toast.error('Error al cargar los datos');
+    } finally {
+      setLoading(false);
     }
-
-    if (paymentsError) {
-      console.error('Error al cargar los pagos:', paymentsError);
-      setPayments([]); // Si hay error, usar array vacío
-    } else {
-      const sortedPayments = ((paymentsData || []) as ClientPayment[]).sort(
-        (a, b) => b.date.toMillis() - a.date.toMillis()
-      );
-      setPayments(sortedPayments);
-    }
-
-    if (notesError) {
-      console.error('Error al cargar las notas:', notesError);
-      setClientNotes([]);
-    } else {
-      const sortedNotes = ((notesData || []) as Note[]).sort(
-        (a, b) => b.updatedAt.toMillis() - a.updatedAt.toMillis()
-      );
-      setClientNotes(sortedNotes);
-    }
-
-    // Cargar consentimientos
-    const { data: consentsData, error: consentsError } = await getDocuments('clientConsents', [
-      where('clientId', '==', client.id),
-      where('userId', '==', currentUser.uid)
-    ]);
-
-    if (consentsError) {
-      console.error('Error al cargar los consentimientos:', consentsError);
-      setConsents([]);
-    } else {
-      const sortedConsents = ((consentsData || []) as ClientConsent[]).sort(
-          (a, b) => new Date(b.signedAt).getTime() - new Date(a.signedAt).getTime()
-      );
-      setConsents(sortedConsents);
-    }
-    
-    setLoading(false);
   };
 
   const handleDeleteService = (serviceId: string) => {
