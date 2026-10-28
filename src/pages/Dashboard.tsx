@@ -15,9 +15,9 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Loading } from '../components/ui/Loading';
 import { useAuth } from '../context/AuthContext';
-import { getDocuments, where } from '../firebase/firestore';
-import type { Appointment, ClientService, ClientPayment } from '../types';
-import { format, isToday } from 'date-fns';
+import { countDocuments, getDocuments, sumDocuments, Timestamp, where } from '../firebase/firestore';
+import type { Appointment, ClientPayment } from '../types';
+import { endOfDay, endOfMonth, format, isThisMonth, isToday, startOfDay, startOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 
@@ -84,25 +84,51 @@ export const Dashboard = () => {
 
     try {
       setLoading(true);
-      
-      const uid = currentUser.uid;
+
+      const now = new Date();
+      const byUser = where('userId', '==', currentUser.uid);
+      const dateRange = (from: Date, to: Date) => [
+        where('date', '>=', Timestamp.fromDate(from)),
+        where('date', '<=', Timestamp.fromDate(to))
+      ];
+
+      // Solo se descargan las citas de hoy; los totales se calculan en el servidor.
       const [
-        { data: appointments, error: apptError },
-        { data: clients, error: clientError },
-        { data: clientServices, error: servicesError },
-        { data: clientPayments, error: paymentsError }
+        todayResult,
+        { count: totalClients, error: clientError },
+        { total: totalServicesAmount, error: servicesError },
+        { total: totalPaid, error: paymentsError },
+        monthResult
       ] = await Promise.all([
-        getDocuments('appointments', [where('userId', '==', uid)]),
-        getDocuments('clients', [where('userId', '==', uid)]),
-        getDocuments('clientServices', [where('userId', '==', uid)]),
-        getDocuments('clientPayments', [where('userId', '==', uid)])
+        getDocuments('appointments', [byUser, ...dateRange(startOfDay(now), endOfDay(now))]),
+        countDocuments('clients', [byUser]),
+        sumDocuments('clientServices', 'totalPrice', [byUser]),
+        sumDocuments('clientPayments', 'amount', [byUser]),
+        sumDocuments('clientPayments', 'amount', [byUser, ...dateRange(startOfMonth(now), endOfMonth(now))])
       ]);
 
-      if (apptError) {
-        console.error('Error al cargar citas:', apptError);
-        toast.error('Error al cargar citas');
-        setLoading(false);
-        return;
+      // Los filtros por fecha requieren los índices de firestore.indexes.json.
+      // Mientras no estén desplegados, se usa la consulta completa anterior.
+      let appointments = todayResult.data as Appointment[];
+      if (todayResult.error) {
+        console.warn('Consulta de citas de hoy sin índice, usando consulta completa:', todayResult.error);
+        const { data, error } = await getDocuments('appointments', [byUser]);
+        if (error) {
+          console.error('Error al cargar citas:', error);
+          toast.error('Error al cargar citas');
+          return;
+        }
+        appointments = data as Appointment[];
+      }
+
+      let monthlyIncome = monthResult.total;
+      if (monthResult.error) {
+        console.warn('Consulta de ingresos del mes sin índice, usando consulta completa:', monthResult.error);
+        const { data } = await getDocuments('clientPayments', [byUser]);
+        monthlyIncome = (data as ClientPayment[]).reduce((total, payment) => {
+          const paymentDate = toDateSafe(payment.date);
+          return paymentDate && isThisMonth(paymentDate) ? total + (payment.amount || 0) : total;
+        }, 0);
       }
 
       if (clientError) {
@@ -117,53 +143,12 @@ export const Dashboard = () => {
         console.error('Error al cargar abonos de usuarios:', paymentsError);
       }
 
-      if (!appointments) {
-        setLoading(false);
-        return;
-      }
-
-      // Filter today's appointments
-      const todayAppts = (appointments as Appointment[]).filter((apt: Appointment) =>
-        isToday(apt.date.toDate())
-      );
-
-      // Calculate total pending from current collections.
-      let totalPending = 0;
-      if (clientServices) {
-        const services = clientServices as ClientService[];
-        const totalServicesAmount = services.reduce(
-          (sum, service) => sum + (service.totalPrice || 0),
-          0
-        );
-
-        const independentPayments = (clientPayments as ClientPayment[] | undefined) || [];
-        const totalIndependentPaid = independentPayments.reduce(
-          (sum, payment) => sum + (payment.amount || 0),
-          0
-        );
-
-        totalPending = Math.max(totalServicesAmount - totalIndependentPaid, 0);
-      }
-
-      // Calculate monthly income from current payments collection.
-      let monthlyIncome = 0;
-      const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
-      const independentPayments = (clientPayments as ClientPayment[] | undefined) || [];
-
-      independentPayments.forEach((payment) => {
-        const paymentDate = toDateSafe(payment.date);
-        if (!paymentDate) return;
-        if (paymentDate.getFullYear() === currentYear && paymentDate.getMonth() === currentMonth) {
-          monthlyIncome += payment.amount || 0;
-        }
-      });
+      const todayAppts = appointments.filter((apt) => isToday(apt.date.toDate()));
 
       setStats({
         todayAppointments: todayAppts.length,
-        totalClients: clients ? clients.length : 0,
-        totalPending,
+        totalClients,
+        totalPending: servicesError ? 0 : Math.max(totalServicesAmount - totalPaid, 0),
         monthlyIncome
       });
 

@@ -4,13 +4,16 @@ import { toast } from 'sonner';
 import { Button } from './ui/Button';
 import { Loading } from './ui/Loading';
 import { LegalFooter } from './layout/LegalFooter';
-import { getLegalAcceptance, recordLegalAcceptance } from '../legal/acceptance';
+import { useAuth } from '../context/AuthContext';
+import {
+  getLegalAcceptance,
+  hasCachedLegalAcceptance,
+  recordLegalAcceptance
+} from '../legal/acceptance';
 
 interface LegalAcceptanceGateProps {
   children: React.ReactNode;
 }
-
-const checkAcceptance = () => getLegalAcceptance();
 
 const getAcceptanceErrorMessage = (error: unknown) => {
   const code = typeof error === 'object' && error !== null && 'code' in error
@@ -32,16 +35,49 @@ const getAcceptanceErrorMessage = (error: unknown) => {
   return 'No se pudo conectar con Firebase para verificar la aceptación. Revisa tu conexión y confirma que las Cloud Functions estén desplegadas.';
 };
 
+const getSaveAcceptanceErrorMessage = (error: unknown) => {
+  const code = typeof error === 'object' && error !== null && 'code' in error
+    ? String(error.code)
+    : '';
+
+  if (code === 'functions/not-found') {
+    return 'La función que guarda la aceptación no está desplegada. Ejecuta npm run deploy --prefix functions desde la carpeta del proyecto y vuelve a intentarlo.';
+  }
+
+  if (code === 'functions/invalid-argument') {
+    return 'La versión legal de la app no coincide con la versión desplegada en Firebase. Despliega las Functions con npm run deploy --prefix functions e inténtalo de nuevo.';
+  }
+
+  if (code === 'functions/unauthenticated') {
+    return 'Tu sesión expiró. Cierra sesión, vuelve a iniciar sesión e inténtalo de nuevo.';
+  }
+
+  if (code === 'functions/permission-denied') {
+    return 'Firebase rechazó el registro. Confirma que estás usando el proyecto de Firebase correcto y que la cuenta tiene una sesión activa.';
+  }
+
+  if (code === 'functions/unavailable' || code === 'functions/deadline-exceeded') {
+    return 'Firebase no está disponible en este momento. Revisa tu conexión e inténtalo de nuevo.';
+  }
+
+  return 'No se pudo guardar la aceptación. Revisa la conexión y la configuración de Firebase e inténtalo de nuevo.';
+};
+
 export const LegalAcceptanceGate = ({ children }: LegalAcceptanceGateProps) => {
-  const [accepted, setAccepted] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { currentUser } = useAuth();
+  const uid = currentUser?.uid ?? '';
+  const cachedAccepted = uid !== '' && hasCachedLegalAcceptance(uid);
+  const [accepted, setAccepted] = useState<boolean | null>(cachedAccepted ? true : null);
+  const [loading, setLoading] = useState(!cachedAccepted);
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (cachedAccepted) return;
     let active = true;
-    checkAcceptance()
+    getLegalAcceptance(uid)
       .then((hasAccepted) => {
         if (active) {
           setAccepted(hasAccepted);
@@ -59,13 +95,13 @@ export const LegalAcceptanceGate = ({ children }: LegalAcceptanceGateProps) => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [uid, cachedAccepted]);
 
   const retryAcceptance = async () => {
     setLoading(true);
     setLoadError(null);
     try {
-      setAccepted(await checkAcceptance());
+      setAccepted(await getLegalAcceptance(uid));
     } catch (error) {
       console.error('No se pudo comprobar la aceptación legal:', error);
       setLoadError(getAcceptanceErrorMessage(error));
@@ -77,13 +113,16 @@ export const LegalAcceptanceGate = ({ children }: LegalAcceptanceGateProps) => {
   const handleAccept = async () => {
     if (!checked) return;
     setSaving(true);
+    setSaveError(null);
     try {
-      await recordLegalAcceptance('in-app', true);
+      await recordLegalAcceptance(uid, 'in-app', true);
       setAccepted(true);
       toast.success('Aceptación registrada');
     } catch (error) {
       console.error('No se pudo registrar la aceptación legal:', error);
-      toast.error('No se pudo guardar tu aceptación. Inténtalo de nuevo.');
+      const message = getSaveAcceptanceErrorMessage(error);
+      setSaveError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -140,6 +179,11 @@ export const LegalAcceptanceGate = ({ children }: LegalAcceptanceGateProps) => {
             </a>.
           </span>
         </label>
+        {saveError && (
+          <p role="alert" className="mt-3 text-sm text-red-700 dark:text-red-300">
+            {saveError}
+          </p>
+        )}
         <Button
           onClick={() => void handleAccept()}
           disabled={!checked}

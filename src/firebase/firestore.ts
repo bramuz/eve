@@ -3,6 +3,9 @@ import {
   doc,
   getDoc,
   getDocs,
+  getCountFromServer,
+  getAggregateFromServer,
+  sum,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -86,6 +89,35 @@ export const getDocuments = async (
     return { data: documents, error: null };
   } catch (error: any) {
     return { data: [], error: error.message };
+  }
+};
+
+// Count documents on the server without downloading them
+export const countDocuments = async (
+  collectionName: string,
+  constraints: QueryConstraint[] = []
+) => {
+  try {
+    const q = query(collection(db, collectionName), ...constraints);
+    const snapshot = await getCountFromServer(q);
+    return { count: snapshot.data().count, error: null };
+  } catch (error: any) {
+    return { count: 0, error: error.message };
+  }
+};
+
+// Sum a numeric field on the server without downloading the documents
+export const sumDocuments = async (
+  collectionName: string,
+  field: string,
+  constraints: QueryConstraint[] = []
+) => {
+  try {
+    const q = query(collection(db, collectionName), ...constraints);
+    const snapshot = await getAggregateFromServer(q, { total: sum(field) });
+    return { total: snapshot.data().total ?? 0, error: null };
+  } catch (error: any) {
+    return { total: 0, error: error.message };
   }
 };
 

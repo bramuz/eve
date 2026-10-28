@@ -59,7 +59,7 @@ export const Register = () => {
       setError('Error al crear la cuenta. Por favor, intenta con otro email.');
     } else if (user) {
       try {
-        await recordLegalAcceptance('email', data.confirmAdult);
+        await recordLegalAcceptance(user.uid, 'email', data.confirmAdult);
         navigate('/dashboard');
       } catch (acceptanceError) {
         console.error('No se pudo registrar la aceptación legal:', acceptanceError);
@@ -87,7 +87,7 @@ export const Register = () => {
       setError(result.error);
     } else if (result.user) {
       try {
-        await recordLegalAcceptance('google', true);
+        await recordLegalAcceptance(result.user.uid, 'google', true);
         navigate('/dashboard');
       } catch (acceptanceError) {
         console.error('No se pudo registrar la aceptación legal:', acceptanceError);
