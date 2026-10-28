@@ -56,3 +56,6 @@ Thumbs.db
 
 functions/lib/
 functions/node_modules/
+
+# Token local de WhatsApp (no subir)
+.env.whatsapp
