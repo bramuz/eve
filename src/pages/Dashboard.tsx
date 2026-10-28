@@ -16,7 +16,7 @@ import { Badge } from '../components/ui/Badge';
 import { Loading } from '../components/ui/Loading';
 import { useAuth } from '../context/AuthContext';
 import { countDocuments, getDocuments, sumDocuments, Timestamp, where } from '../firebase/firestore';
-import type { Appointment, ClientPayment } from '../types';
+import type { Appointment, ClientPayment, ClientService } from '../types';
 import { endOfDay, endOfMonth, format, isThisMonth, isToday, startOfDay, startOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -121,26 +121,46 @@ export const Dashboard = () => {
         appointments = data as Appointment[];
       }
 
+      // Las sumas en el servidor también dependen de esos índices; si fallan,
+      // se descargan los documentos y se suma aquí (una sola descarga por colección).
+      let allPayments: Promise<ClientPayment[]> | null = null;
+      const loadAllPayments = () =>
+        (allPayments ??= getDocuments('clientPayments', [byUser]).then(({ data, error }) => {
+          if (error) console.error('Error al cargar abonos de usuarios:', error);
+          return data as ClientPayment[];
+        }));
+
       let monthlyIncome = monthResult.total;
       if (monthResult.error) {
-        console.warn('Consulta de ingresos del mes sin índice, usando consulta completa:', monthResult.error);
-        const { data } = await getDocuments('clientPayments', [byUser]);
-        monthlyIncome = (data as ClientPayment[]).reduce((total, payment) => {
+        console.warn('Suma de ingresos del mes sin índice, usando consulta completa:', monthResult.error);
+        monthlyIncome = (await loadAllPayments()).reduce((total, payment) => {
           const paymentDate = toDateSafe(payment.date);
           return paymentDate && isThisMonth(paymentDate) ? total + (payment.amount || 0) : total;
         }, 0);
       }
 
+      let servicesAmount = totalServicesAmount;
+      if (servicesError) {
+        console.warn('Suma de servicios sin índice, usando consulta completa:', servicesError);
+        const { data, error } = await getDocuments('clientServices', [byUser]);
+        if (error) console.error('Error al cargar servicios:', error);
+        servicesAmount = (data as ClientService[]).reduce(
+          (total, service) => total + (service.totalPrice || 0),
+          0
+        );
+      }
+
+      let paidAmount = totalPaid;
+      if (paymentsError) {
+        console.warn('Suma de abonos sin índice, usando consulta completa:', paymentsError);
+        paidAmount = (await loadAllPayments()).reduce(
+          (total, payment) => total + (payment.amount || 0),
+          0
+        );
+      }
+
       if (clientError) {
         console.error('Error al cargar usuarios:', clientError);
-      }
-
-      if (servicesError) {
-        console.error('Error al cargar servicios:', servicesError);
-      }
-
-      if (paymentsError) {
-        console.error('Error al cargar abonos de usuarios:', paymentsError);
       }
 
       const todayAppts = appointments.filter((apt) => isToday(apt.date.toDate()));
@@ -148,7 +168,7 @@ export const Dashboard = () => {
       setStats({
         todayAppointments: todayAppts.length,
         totalClients,
-        totalPending: servicesError ? 0 : Math.max(totalServicesAmount - totalPaid, 0),
+        totalPending: Math.max(servicesAmount - paidAmount, 0),
         monthlyIncome
       });
 
