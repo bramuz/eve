@@ -1,5 +1,7 @@
 import { initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 import { HttpsError, onCall, onRequest } from 'firebase-functions/v2/https';
 import { onDocumentCreated, onDocumentDeleted } from 'firebase-functions/v2/firestore';
 import { defineSecret } from 'firebase-functions/params';
@@ -184,6 +186,68 @@ export const cancelSubscription = onCall(
     }, { merge: true });
 
     return { status: result.status };
+  }
+);
+
+// Colecciones donde cada documento lleva el userId del profesional.
+const USER_COLLECTIONS = [
+  'appointments', 'clients', 'clientServices', 'clientPayments', 'payments', 'products',
+  'sales', 'specialDays', 'notes', 'clientConsents', 'clientPhotos', 'availability', 'slotLocks'
+];
+const RENEWING_STATUSES = ['authorized', 'pending', 'paused'];
+
+export const deleteAccount = onCall(
+  { secrets: [MP_ACCESS_TOKEN], region: 'us-central1', timeoutSeconds: 540 },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+    }
+    if (request.data?.confirm !== 'ELIMINAR') {
+      throw new HttpsError('invalid-argument', 'Escribe ELIMINAR para confirmar.');
+    }
+
+    const userRef = db.doc(`users/${uid}`);
+    const { preapprovalId, subscriptionStatus, subscriptionPlan } = (await userRef.get()).data() ?? {};
+
+    // Sin cancelar la renovación no se borra nada: Mercado Pago seguiría cobrando.
+    let finalStatus = subscriptionStatus ?? null;
+    if (typeof preapprovalId === 'string' && preapprovalId && RENEWING_STATUSES.includes(subscriptionStatus)) {
+      const result = await mpFetch(`/preapproval/${encodeURIComponent(preapprovalId)}`, MP_ACCESS_TOKEN.value(), {
+        method: 'PUT',
+        body: JSON.stringify({ status: 'cancelled' })
+      }).catch(() => null);
+      if (result?.status !== 'cancelled') {
+        throw new HttpsError(
+          'failed-precondition',
+          'No pudimos cancelar tu suscripción en Mercado Pago, así que no eliminamos la cuenta. Inténtalo de nuevo en unos minutos.'
+        );
+      }
+      finalStatus = 'cancelled';
+    }
+
+    const writer = db.bulkWriter();
+    for (const name of USER_COLLECTIONS) {
+      const snap = await db.collection(name).where('userId', '==', uid).select().get();
+      snap.docs.forEach((doc) => writer.delete(doc.ref));
+    }
+    writer.delete(db.doc(`bookingProfiles/${uid}`));
+    writer.delete(db.doc(`notificationSettings/${uid}`));
+    await writer.close();
+
+    await getStorage().bucket().deleteFiles({ prefix: `client-photos/${uid}/` });
+
+    // Solo se conserva la referencia de la suscripción; la prueba de aceptación
+    // legal queda en legalAcceptances, como indica la política de privacidad.
+    await userRef.set({
+      deletedAt: Timestamp.now(),
+      preapprovalId: preapprovalId ?? null,
+      subscriptionPlan: subscriptionPlan ?? null,
+      subscriptionStatus: finalStatus
+    });
+
+    await getAuth().deleteUser(uid);
+    return { deleted: true };
   }
 );
 

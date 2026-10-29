@@ -17,6 +17,7 @@ import {
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { LegalFooter } from '../components/layout/LegalFooter';
+import { DeleteAccountSection } from '../components/DeleteAccountSection';
 
 const FREE_FEATURES = [
   `Hasta ${FREE_CLIENT_LIMIT} usuarios`,
@@ -219,6 +220,8 @@ export const Plans = () => {
         )}
       </div>
       </div>
+
+      <DeleteAccountSection />
 
       <LegalFooter />
 
