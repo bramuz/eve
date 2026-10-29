@@ -39,15 +39,15 @@ export const LEGAL_DOCUMENTS = {
       {
         title: 'Proveedores y transferencias',
         paragraphs: [
-          'Para prestar el servicio utilizamos Firebase/Google Cloud para autenticación, base de datos, funciones y almacenamiento, y Mercado Pago para suscripciones. Estos proveedores reciben los datos estrictamente necesarios para sus funciones y pueden tratarlos de acuerdo con sus propios términos y ubicaciones de infraestructura.',
-          'La ubicación efectiva del proyecto de Firebase, las transferencias internacionales aplicables y los contratos con encargados deben verificarse y documentarse por el operador antes del lanzamiento.'
+          'Para prestar el servicio utilizamos Firebase/Google Cloud para autenticación, base de datos, funciones y almacenamiento; Mercado Pago para suscripciones; y la plataforma WhatsApp Business de Meta para enviar confirmaciones y recordatorios de citas a quienes lo autorizaron. Estos proveedores reciben los datos estrictamente necesarios para sus funciones, como el nombre, el teléfono y los datos de la cita en el caso de WhatsApp, y los tratan de acuerdo con sus propios términos.',
+          'Estos proveedores pueden almacenar o procesar la información en servidores ubicados fuera de Colombia, incluidos los Estados Unidos. Al aceptar esta política, el titular autoriza esa transferencia internacional, que se realiza únicamente para prestar el servicio y con proveedores que aplican medidas de seguridad sobre los datos.'
         ]
       },
       {
         title: 'Derechos, solicitudes y conservación',
         paragraphs: [
           'Las personas pueden solicitar conocer, actualizar y rectificar sus datos, pedir prueba de la autorización, conocer el uso dado, presentar consultas o reclamos, y solicitar la revocatoria o supresión cuando proceda conforme a la ley. Las solicitudes dirigidas a Stetik pueden enviarse a ' + LEGAL_OPERATOR.privacyEmail + '. Para datos de clientes gestionados por un profesional, contacte primero al profesional responsable.',
-          'Conservamos la información mientras la cuenta esté activa y durante el tiempo adicional necesario para prestar el servicio, atender reclamaciones y cumplir obligaciones legales. Deben definirse plazos concretos de conservación, eliminación y copias de respaldo antes del lanzamiento.',
+          'Conservamos la información mientras la cuenta esté activa. Para eliminar tu cuenta y tus datos, escribe a ' + LEGAL_OPERATOR.privacyEmail + ' desde el correo con el que te registraste. Atenderemos la solicitud en un plazo máximo de 15 días hábiles, y en ese plazo eliminaremos la cuenta, sus datos y los de los clientes registrados en ella. Las copias de respaldo, si existen, se eliminan de forma automática en un máximo de 90 días adicionales. Solo conservaremos, durante el tiempo que exija la ley, la información que debamos guardar por obligaciones legales, contables o tributarias, como los registros de pagos y la prueba de aceptación de estos documentos.',
           'Si una solicitud no es atendida conforme al procedimiento legal, la persona puede acudir ante la Superintendencia de Industria y Comercio, una vez agotado el trámite correspondiente ante el responsable.'
         ]
       },
