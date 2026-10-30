@@ -200,7 +200,7 @@ export const Plans = () => {
         </h3>
         <p className="mt-2 text-3xl font-bold text-primary-600">{SEMIANNUAL_MONTHLY_LABEL}</p>
         <p className="mt-1 text-sm text-warm-700 dark:text-warm-300">
-          Pago único de <strong>{SEMIANNUAL_TOTAL_LABEL}</strong> por los 6 meses
+          Se cobra <strong>{SEMIANNUAL_TOTAL_LABEL}</strong> cada 6 meses
         </p>
         <ul className="mt-5 flex-1 space-y-3">
           {PREMIUM_FEATURES.map((f) => (
