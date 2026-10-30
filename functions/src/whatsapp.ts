@@ -263,6 +263,11 @@ export const whatsappWebhook = onRequest({ secrets: SECRETS, region: 'us-central
             await handleReply(msg.from, payload);
           }
         }
+        for (const st of change?.value?.statuses ?? []) {
+          if (st?.status === 'failed') {
+            console.error('WhatsApp entrega fallida', st.recipient_id, JSON.stringify(st.errors ?? []));
+          }
+        }
       }
     }
     res.sendStatus(200);
