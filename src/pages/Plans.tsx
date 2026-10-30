@@ -28,6 +28,7 @@ const PREMIUM_FEATURES = [
   'Usuarios ilimitados',
   'Agenda citas de cualquier semana',
   'Reservas online con link para tus usuarios',
+  'Avisos y recordatorios de citas por WhatsApp',
   'Todas las funciones actuales y futuras'
 ];
 
