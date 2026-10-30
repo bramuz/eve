@@ -289,21 +289,6 @@ export const Appointments = () => {
           </h1>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => {
-              if (!isPremium) {
-                toast.info('Las reservas online son una función Premium');
-                navigate('/plans');
-                return;
-              }
-              setShowBookingSettings(true);
-            }}
-            className="p-2 sm:px-4 sm:py-2 rounded-xl bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 hover:bg-warm-50 dark:hover:bg-warm-700 transition-colors shadow-sm flex items-center gap-2"
-            title="Link de reservas y disponibilidad"
-          >
-            <Link2 className="w-4 h-4 text-warm-700 dark:text-warm-300" />
-            <span className="hidden sm:inline text-sm font-medium text-warm-700 dark:text-warm-300">Reservas{!isPremium && ' 👑'}</span>
-          </button>
           {/* Toggle Vista */}
           <button
             onClick={() => setViewMode(viewMode === 'week' ? 'month' : 'week')}
@@ -337,6 +322,37 @@ export const Appointments = () => {
           </Button>
         </div>
       </motion.div>
+
+      {/* Link de reservas */}
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.02 }}
+        onClick={() => {
+          if (!isPremium) {
+            toast.info('Las reservas online son una función Premium');
+            navigate('/plans');
+            return;
+          }
+          setShowBookingSettings(true);
+        }}
+        className="w-full flex items-center gap-3 p-3 sm:p-4 rounded-2xl text-left bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
+      >
+        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary-600 text-white flex items-center justify-center">
+          <Link2 className="w-5 h-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm sm:text-base font-semibold text-warm-900 dark:text-white">
+            Tu link para que te agenden{!isPremium && ' 👑'}
+          </p>
+          <p className="text-xs sm:text-sm text-warm-600 dark:text-warm-400">
+            Compártelo por WhatsApp o redes y tus clientes reservan solos
+          </p>
+        </div>
+        <span className="flex-shrink-0 px-3 py-2 rounded-xl bg-primary-600 text-white text-sm font-semibold">
+          {isPremium ? 'Compartir' : 'Activar'}
+        </span>
+      </motion.button>
 
       {/* Buscador */}
       <motion.div
