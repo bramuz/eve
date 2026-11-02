@@ -12,6 +12,7 @@ import { useVersionCheck } from './hooks/useVersionCheck';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { ForgotPassword } from './pages/ForgotPassword';
+import { Landing } from './pages/Landing';
 
 // App Pages
 import { Dashboard } from './pages/Dashboard';
@@ -128,8 +129,11 @@ function App() {
               }
             />
 
-            {/* Redirect root to dashboard */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* Página de presentación; con sesión iniciada va directo al panel */}
+            <Route
+              path="/"
+              element={<Landing />}
+            />
 
             {/* 404 - Redirect to dashboard */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
