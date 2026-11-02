@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm, useWatch } from 'react-hook-form';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, Chrome } from 'lucide-react';
+import { Mail, Lock, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Alert } from '../components/ui/Alert';
 import { LegalFooter } from '../components/layout/LegalFooter';
+import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
 import { recordLegalAcceptance } from '../legal/acceptance';
 
 interface RegisterForm {
@@ -242,16 +243,7 @@ export const Register = () => {
           </div>
 
           {/* Google Sign In */}
-          <Button
-            type="button"
-            variant="secondary"
-            fullWidth
-            icon={<Chrome className="w-5 h-5" />}
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-          >
-            Continuar con Google
-          </Button>
+          <GoogleSignInButton label="Continuar con Google" onClick={handleGoogleSignIn} disabled={loading} />
 
           {/* Login Link */}
           <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">

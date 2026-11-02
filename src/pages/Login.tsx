@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Chrome } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Alert } from '../components/ui/Alert';
 import { LegalFooter } from '../components/layout/LegalFooter';
+import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
 
 interface LoginForm {
   email: string;
@@ -153,16 +154,7 @@ export const Login = () => {
           </div>
 
           {/* Google Sign In */}
-          <Button
-            type="button"
-            variant="secondary"
-            fullWidth
-            icon={<Chrome className="w-5 h-5" />}
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-          >
-            Iniciar con Google
-          </Button>
+          <GoogleSignInButton label="Iniciar con Google" onClick={handleGoogleSignIn} disabled={loading} />
 
           {/* Register Link */}
           <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
