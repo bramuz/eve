@@ -20,7 +20,7 @@ import {
   SEMIANNUAL_SAVINGS_LABEL,
   SEMIANNUAL_TOTAL_LABEL
 } from '../config/plans';
-import { LEGAL_OPERATOR } from '../legal/documents';
+import { SUPPORT_EMAIL } from '../config/support';
 import { LegalFooter } from '../components/layout/LegalFooter';
 import { useAuth } from '../context/AuthContext';
 
@@ -321,8 +321,8 @@ export const Landing = () => {
     <footer className="border-t border-warm-200 px-4 py-8 text-center text-sm text-warm-600 dark:border-warm-800 dark:text-warm-400">
       <p className="flex items-center justify-center gap-2">
         <Mail className="h-4 w-4" /> ¿Dudas? Escríbenos a{' '}
-        <a className="font-medium text-primary-600 hover:underline" href={`mailto:${LEGAL_OPERATOR.privacyEmail}`}>
-          {LEGAL_OPERATOR.privacyEmail}
+        <a className="font-medium text-primary-600 hover:underline" href={`mailto:${SUPPORT_EMAIL}`}>
+          {SUPPORT_EMAIL}
         </a>
       </p>
       <LegalFooter />

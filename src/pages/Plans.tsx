@@ -14,6 +14,7 @@ import {
   SEMIANNUAL_TOTAL_LABEL,
   type PlanId
 } from '../config/plans';
+import { SUPPORT_EMAIL } from '../config/support';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { LegalFooter } from '../components/layout/LegalFooter';
@@ -110,7 +111,7 @@ export const Plans = () => {
 
       {returnedFromPayment && !isPremium && waitingTimedOut && (
         <div className="p-4 rounded-2xl bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 text-sm">
-          Tu pago aún no se refleja. Puede tardar unos minutos: si ya pagaste, tu plan se activará solo. Si en 10 minutos no cambia, contáctanos.
+          Tu pago aún no se refleja. Puede tardar unos minutos: si ya pagaste, tu plan se activará solo. Si en 10 minutos no cambia, escríbenos a {SUPPORT_EMAIL}.
         </div>
       )}
 
