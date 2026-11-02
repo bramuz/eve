@@ -284,7 +284,7 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 
 **Bramuz**
 - GitHub: [@Bramuz](https://github.com/Bramuz)
-- Email: brayanml93@gmail.com
+- Email: stetik.soporte@gmail.com
 
 ---
 

@@ -125,7 +125,7 @@ git push
 
 1. **Generar clave SSH**
    ```bash
-   ssh-keygen -t ed25519 -C "brayanml93@gmail.com"
+   ssh-keygen -t ed25519 -C "stetik.soporte@gmail.com"
    ```
 
 2. **Agregar a SSH Agent**
@@ -248,5 +248,5 @@ Si tienes problemas:
 
 **Creado:** $(date)
 **Usuario:** Bramuz
-**Email:** brayanml93@gmail.com
+**Email:** stetik.soporte@gmail.com
 **Repositorio:** https://github.com/Bramuz/eve

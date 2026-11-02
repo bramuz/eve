@@ -1,3 +1,5 @@
+import { SUPPORT_EMAIL } from '../config/support';
+
 export const LEGAL_TERMS_VERSION = '2026-10-19-v4';
 export const LEGAL_PRIVACY_VERSION = '2026-10-19-v3';
 
@@ -5,7 +7,7 @@ export const LEGAL_OPERATOR = {
   name: 'Brayan Alexis Muñoz',
   identification: 'C.C. 1.020.455.625',
   address: 'Carrera 55 # 34-53, Bello, Antioquia, Colombia',
-  privacyEmail: 'brayanml93@gmail.com'
+  privacyEmail: SUPPORT_EMAIL
 };
 
 export const LEGAL_DOCUMENTS = {
