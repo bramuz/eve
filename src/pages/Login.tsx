@@ -9,6 +9,7 @@ import { Input } from '../components/ui/Input';
 import { Alert } from '../components/ui/Alert';
 import { LegalFooter } from '../components/layout/LegalFooter';
 import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
+import { OpenInBrowserBanner } from '../components/auth/OpenInBrowserBanner';
 
 interface LoginForm {
   email: string;
@@ -74,6 +75,8 @@ export const Login = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
+        <OpenInBrowserBanner className="mb-6" />
+
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent mb-2">

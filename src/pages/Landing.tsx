@@ -23,6 +23,7 @@ import {
 import { SUPPORT_EMAIL } from '../config/support';
 import { LegalFooter } from '../components/layout/LegalFooter';
 import { useAuth } from '../context/AuthContext';
+import { OpenInBrowserBanner } from '../components/auth/OpenInBrowserBanner';
 
 const FEATURES = [
   {
@@ -157,6 +158,9 @@ export const Landing = () => {
     </header>
 
     <main>
+      <div className="mx-auto max-w-6xl px-4 pt-4">
+        <OpenInBrowserBanner />
+      </div>
       {/* Hero */}
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 md:grid-cols-2 md:py-20">
         <div className="text-center md:text-left">
