@@ -41,15 +41,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     console.log('[AuthProvider] Setting up auth listener...');
     
-    // Just listen to auth state - redirect result is handled in main.tsx
+    // En algunos navegadores internos (Instagram, Facebook) el almacenamiento de la sesión
+    // nunca responde y la app se quedaría cargando: tras unos segundos se muestra sin sesión.
+    const fallback = setTimeout(() => {
+      console.warn('[AuthProvider] Auth state timeout, continuing without session');
+      setLoading(false);
+    }, 4000);
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       console.log('[AuthProvider] Auth state changed:', user ? user.email : 'no user');
+      clearTimeout(fallback);
       setCurrentUser(user);
       setLoading(false);
     });
 
     return () => {
       console.log('[AuthProvider] Cleaning up...');
+      clearTimeout(fallback);
       unsubscribe();
     };
   }, []);

@@ -1,8 +1,16 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import {
+  browserLocalPersistence,
+  browserPopupRedirectResolver,
+  browserSessionPersistence,
+  getAuth,
+  inMemoryPersistence,
+  initializeAuth
+} from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
+import { isInAppBrowser } from '../utils/inAppBrowser';
 
 // Firebase configuration using environment variables
 const firebaseConfig = {
@@ -18,7 +26,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase services
-export const auth = getAuth(app);
+// En los navegadores internos de Facebook/Instagram IndexedDB puede quedarse sin responder
+// y bloquear el inicio de sesión, así que ahí la sesión se guarda en localStorage.
+export const auth = isInAppBrowser()
+  ? initializeAuth(app, {
+      persistence: [browserLocalPersistence, browserSessionPersistence, inMemoryPersistence],
+      popupRedirectResolver: browserPopupRedirectResolver
+    })
+  : getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app, 'us-central1');
