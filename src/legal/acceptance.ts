@@ -40,7 +40,20 @@ const cacheLegalAcceptance = (uid: string) => {
   }
 };
 
+// Al crear la cuenta, la sesión existe antes de que se guarde la aceptación y las rutas
+// saltan al panel: la verificación espera a que termine el registro en curso.
+let pendingSignUp: Promise<unknown> | null = null;
+
+export const trackSignUp = <T>(work: Promise<T>) => {
+  pendingSignUp = work;
+  void work.finally(() => {
+    if (pendingSignUp === work) pendingSignUp = null;
+  }).catch(() => {});
+  return work;
+};
+
 export const getLegalAcceptance = async (uid: string) => {
+  if (pendingSignUp) await pendingSignUp.catch(() => {});
   if (hasCachedLegalAcceptance(uid)) return true;
 
   const checkAcceptance = httpsCallable<void, LegalAcceptanceResponse>(

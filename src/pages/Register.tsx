@@ -10,7 +10,7 @@ import { Alert } from '../components/ui/Alert';
 import { LegalFooter } from '../components/layout/LegalFooter';
 import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
 import { OpenInBrowserBanner } from '../components/auth/OpenInBrowserBanner';
-import { recordLegalAcceptance } from '../legal/acceptance';
+import { recordLegalAcceptance, trackSignUp } from '../legal/acceptance';
 import { trackEvent } from '../analytics/metaPixel';
 
 interface RegisterForm {
@@ -60,26 +60,28 @@ export const Register = () => {
     setError('');
     setRegistrationFlow(true);
 
-    const { user, error: signUpError } = await signUp(
-      data.email,
-      data.password,
-      data.name
-    );
+    await trackSignUp((async () => {
+      const { user, error: signUpError } = await signUp(
+        data.email,
+        data.password,
+        data.name
+      );
 
-    if (signUpError) {
-      console.error('[Register] signUp error:', signUpError);
-      setError(signUpErrorMessage(signUpError));
-    } else if (user) {
-      try {
-        await recordLegalAcceptance(user.uid, 'email', data.confirmAdult);
-        trackEvent('CompleteRegistration', { method: 'email' });
-        navigate('/dashboard');
-      } catch (acceptanceError) {
-        console.error('No se pudo registrar la aceptación legal:', acceptanceError);
-        await signOut();
-        setError('La cuenta se creó, pero no pudimos guardar tu aceptación. Inicia sesión para completarla.');
+      if (signUpError) {
+        console.error('[Register] signUp error:', signUpError);
+        setError(signUpErrorMessage(signUpError));
+      } else if (user) {
+        try {
+          await recordLegalAcceptance(user.uid, 'email', data.confirmAdult);
+          trackEvent('CompleteRegistration', { method: 'email' });
+          navigate('/dashboard');
+        } catch (acceptanceError) {
+          console.error('No se pudo registrar la aceptación legal:', acceptanceError);
+          await signOut();
+          setError('La cuenta se creó, pero no pudimos guardar tu aceptación. Inicia sesión para completarla.');
+        }
       }
-    }
+    })());
     setRegistrationFlow(false);
     setLoading(false);
   };
@@ -94,21 +96,23 @@ export const Register = () => {
     setError('');
     setRegistrationFlow(true);
 
-    const result = await signInGoogle();
+    await trackSignUp((async () => {
+      const result = await signInGoogle();
 
-    if (result.error) {
-      setError(result.error);
-    } else if (result.user) {
-      try {
-        await recordLegalAcceptance(result.user.uid, 'google', true);
-        trackEvent('CompleteRegistration', { method: 'google' });
-        navigate('/dashboard');
-      } catch (acceptanceError) {
-        console.error('No se pudo registrar la aceptación legal:', acceptanceError);
-        await signOut();
-        setError('No pudimos guardar tu aceptación. Inténtalo de nuevo.');
+      if (result.error) {
+        setError(result.error);
+      } else if (result.user) {
+        try {
+          await recordLegalAcceptance(result.user.uid, 'google', true);
+          trackEvent('CompleteRegistration', { method: 'google' });
+          navigate('/dashboard');
+        } catch (acceptanceError) {
+          console.error('No se pudo registrar la aceptación legal:', acceptanceError);
+          await signOut();
+          setError('No pudimos guardar tu aceptación. Inténtalo de nuevo.');
+        }
       }
-    }
+    })());
     setRegistrationFlow(false);
     setLoading(false);
   };
