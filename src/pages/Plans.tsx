@@ -15,6 +15,7 @@ import {
   type PlanId
 } from '../config/plans';
 import { SUPPORT_EMAIL } from '../config/support';
+import { trackEvent } from '../analytics/metaPixel';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { LegalFooter } from '../components/layout/LegalFooter';
@@ -49,6 +50,7 @@ export const Plans = () => {
   useEffect(() => {
     if (!returnedFromPayment) return;
     if (isPremium) {
+      trackEvent('Subscribe');
       toast.success('¡Pago recibido! Tu plan Premium ya está activo.');
       setSearchParams({}, { replace: true });
       return;
@@ -59,6 +61,7 @@ export const Plans = () => {
 
   const handleSubscribe = async (plan: PlanId) => {
     setLoadingPlan(plan);
+    trackEvent('InitiateCheckout', { content_name: plan });
     try {
       const createSubscription = httpsCallable<{ returnUrl: string; plan: PlanId }, { url: string }>(
         functions,

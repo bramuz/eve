@@ -11,6 +11,7 @@ import { LegalFooter } from '../components/layout/LegalFooter';
 import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
 import { OpenInBrowserBanner } from '../components/auth/OpenInBrowserBanner';
 import { recordLegalAcceptance } from '../legal/acceptance';
+import { trackEvent } from '../analytics/metaPixel';
 
 interface RegisterForm {
   name: string;
@@ -20,6 +21,14 @@ interface RegisterForm {
   confirmAdult: boolean;
   acceptLegal: boolean;
 }
+
+const signUpErrorMessage = (error: string) => {
+  if (error.includes('email-already-in-use')) return 'Ya existe una cuenta con este correo. Inicia sesión o recupera tu contraseña.';
+  if (error.includes('invalid-email')) return 'El correo no es válido. Revísalo e inténtalo de nuevo.';
+  if (error.includes('weak-password')) return 'La contraseña es muy débil. Usa al menos 6 caracteres.';
+  if (error.includes('network-request-failed')) return 'No hay conexión. Revisa tu internet e inténtalo de nuevo.';
+  return 'No pudimos crear la cuenta. Inténtalo de nuevo en unos minutos.';
+};
 
 export const Register = () => {
   const [error, setError] = useState('');
@@ -58,10 +67,12 @@ export const Register = () => {
     );
 
     if (signUpError) {
-      setError('Error al crear la cuenta. Por favor, intenta con otro email.');
+      console.error('[Register] signUp error:', signUpError);
+      setError(signUpErrorMessage(signUpError));
     } else if (user) {
       try {
         await recordLegalAcceptance(user.uid, 'email', data.confirmAdult);
+        trackEvent('CompleteRegistration', { method: 'email' });
         navigate('/dashboard');
       } catch (acceptanceError) {
         console.error('No se pudo registrar la aceptación legal:', acceptanceError);
@@ -90,6 +101,7 @@ export const Register = () => {
     } else if (result.user) {
       try {
         await recordLegalAcceptance(result.user.uid, 'google', true);
+        trackEvent('CompleteRegistration', { method: 'google' });
         navigate('/dashboard');
       } catch (acceptanceError) {
         console.error('No se pudo registrar la aceptación legal:', acceptanceError);

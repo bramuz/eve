@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { PlanProvider } from './context/PlanContext';
@@ -7,6 +7,7 @@ import { ProtectedRoute, PublicRoute } from './routes/ProtectedRoute';
 import { MobileLayout } from './components/layout/MobileLayout';
 import { Toaster } from 'sonner';
 import { useVersionCheck } from './hooks/useVersionCheck';
+import { trackPageView } from './analytics/metaPixel';
 
 // Auth Pages
 import { Login } from './pages/Login';
@@ -24,12 +25,19 @@ const Plans = lazy(() => import('./pages/Plans').then((m) => ({ default: m.Plans
 const LegalPage = lazy(() => import('./pages/LegalPage').then((m) => ({ default: m.LegalPage })));
 const PublicBooking = lazy(() => import('./pages/PublicBooking').then((m) => ({ default: m.PublicBooking })));
 
+const PageViewTracker = () => {
+  const { pathname } = useLocation();
+  useEffect(() => trackPageView(pathname), [pathname]);
+  return null;
+};
+
 function App() {
   // Hook para detectar y recargar nuevas versiones automáticamente
   useVersionCheck();
 
   return (
     <BrowserRouter>
+      <PageViewTracker />
       <ThemeProvider>
         <AuthProvider>
           <PlanProvider>
