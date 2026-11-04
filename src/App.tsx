@@ -7,6 +7,7 @@ import { ProtectedRoute, PublicRoute } from './routes/ProtectedRoute';
 import { MobileLayout } from './components/layout/MobileLayout';
 import { Toaster } from 'sonner';
 import { useVersionCheck } from './hooks/useVersionCheck';
+import { Analytics } from '@vercel/analytics/react';
 import { trackPageView } from './analytics/metaPixel';
 
 // Auth Pages
@@ -38,6 +39,8 @@ function App() {
   return (
     <BrowserRouter>
       <PageViewTracker />
+      {/* Las páginas de reserva son de los clientes de cada profesional: no se miden. */}
+      <Analytics beforeSend={(event) => (new URL(event.url).pathname.startsWith('/reservar/') ? null : event)} />
       <ThemeProvider>
         <AuthProvider>
           <PlanProvider>

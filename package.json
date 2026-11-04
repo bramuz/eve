@@ -12,6 +12,7 @@
     "deploy:full": "npm run build && firebase deploy"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "date-fns": "^3.6.0",
     "firebase": "^10.8.0",
     "framer-motion": "^11.0.5",
