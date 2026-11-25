@@ -19,6 +19,7 @@ import { SpecialDayForm } from '../components/appointments/SpecialDayForm';
 import { BookingSettings } from '../components/appointments/BookingSettings';
 import { releaseSlot } from '../firebase/booking';
 import { Link2 } from 'lucide-react';
+import { ReminderLink } from '../components/appointments/ReminderLink';
 import { toast } from 'sonner';
 
 export const Appointments = () => {
@@ -705,6 +706,7 @@ export const Appointments = () => {
                             
                             {/* Actions */}
                             <div className="flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                              <ReminderLink apt={apt} professionalName={currentUser?.displayName} />
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import {
   Bell,
@@ -15,15 +16,16 @@ import {
 } from 'lucide-react';
 import {
   FREE_CLIENT_LIMIT,
+  TRIAL_DAYS,
   PREMIUM_PRICE_LABEL,
   SEMIANNUAL_MONTHLY_LABEL,
   SEMIANNUAL_SAVINGS_LABEL,
   SEMIANNUAL_TOTAL_LABEL
 } from '../config/plans';
-import { SUPPORT_EMAIL } from '../config/support';
+import { SUPPORT_EMAIL, SUPPORT_WHATSAPP } from '../config/support';
 import { LegalFooter } from '../components/layout/LegalFooter';
 import { useAuth } from '../context/AuthContext';
-import { OpenInBrowserBanner } from '../components/auth/OpenInBrowserBanner';
+import { trackCustomEvent } from '../analytics/metaPixel';
 
 const FEATURES = [
   {
@@ -59,7 +61,7 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { title: 'Crea tu cuenta gratis', text: 'Con tu correo, en menos de un minuto.' },
+  { title: 'Crea tu cuenta gratis', text: `Con tu correo, en menos de un minuto. Tienes ${TRIAL_DAYS} días con todo Premium.` },
   { title: 'Configura tus horarios', text: 'Dinos qué días y horas atiendes.' },
   { title: 'Comparte tu link', text: 'Tus clientes eligen su hora y tú recibes el aviso.' }
 ];
@@ -74,7 +76,11 @@ const TRUST = [
 const FAQ = [
   {
     q: '¿Tengo que pagar para empezar?',
-    a: `No. El plan gratis no pide tarjeta y te deja manejar hasta ${FREE_CLIENT_LIMIT} clientes. Pasas a Premium solo si lo necesitas.`
+    a: `No. Al crear tu cuenta tienes ${TRIAL_DAYS} días con todo Premium (WhatsApp, link de reservas, sin límites) y no te pedimos tarjeta. Si no pagas, sigues con el plan gratis: hasta ${FREE_CLIENT_LIMIT} clientes y agenda de 7 días.`
+  },
+  {
+    q: `¿Qué pasa cuando terminan los ${TRIAL_DAYS} días?`,
+    a: 'Nada se borra. Sigues entrando con el plan gratis, y cuando quieras activas Premium desde la app con Mercado Pago. No hay cobros automáticos al terminar la prueba.'
   },
   {
     q: '¿Mis clientes tienen que descargar algo?',
@@ -90,12 +96,18 @@ const FAQ = [
   }
 ];
 
-const PrimaryCta = ({ className = '' }: { className?: string }) => (
+const trackSignUpClick = (place: string) => trackCustomEvent('ClickSignUp', { place });
+
+// El registro se carga aparte: se descarga en segundo plano para que abra al instante.
+const preloadRegister = () => void import('./Register');
+
+const PrimaryCta = ({ className = '', place }: { className?: string; place: string }) => (
   <Link
     to="/register"
+    onClick={() => trackSignUpClick(place)}
     className={`inline-flex items-center justify-center rounded-2xl bg-primary-600 px-6 py-3.5 text-base font-semibold text-white shadow-glow transition-colors hover:bg-primary-700 ${className}`}
   >
-    Crear mi cuenta gratis
+    Probar {TRIAL_DAYS} días gratis
   </Link>
 );
 
@@ -130,6 +142,10 @@ const WhatsAppPreview = () => (
 export const Landing = () => {
   // No espera a Firebase: la página se ve al instante y, si hay sesión, va al panel.
   const { currentUser } = useAuth();
+  useEffect(() => {
+    const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1500));
+    idle(preloadRegister);
+  }, []);
   if (currentUser) return <Navigate to="/dashboard" replace />;
 
   return (
@@ -149,6 +165,7 @@ export const Landing = () => {
           </Link>
           <Link
             to="/register"
+            onClick={() => trackSignUpClick('header')}
             className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
           >
             Empezar gratis
@@ -158,9 +175,6 @@ export const Landing = () => {
     </header>
 
     <main>
-      <div className="mx-auto max-w-6xl px-4 pt-4">
-        <OpenInBrowserBanner />
-      </div>
       {/* Hero */}
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 md:grid-cols-2 md:py-20">
         <div className="text-center md:text-left">
@@ -175,7 +189,7 @@ export const Landing = () => {
             la confirmación y el recordatorio por WhatsApp.
           </p>
           <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row md:justify-start">
-            <PrimaryCta className="w-full sm:w-auto" />
+            <PrimaryCta className="w-full sm:w-auto" place="hero" />
             <Link
               to="/login"
               className="text-sm font-medium text-warm-600 underline-offset-4 hover:underline dark:text-warm-300"
@@ -184,7 +198,7 @@ export const Landing = () => {
             </Link>
           </div>
           <ul className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-warm-600 dark:text-warm-300 md:justify-start">
-            {['Gratis para empezar', 'Sin tarjeta', 'Sin instalar nada'].map((item) => (
+            {[`${TRIAL_DAYS} días con todo incluido`, 'Sin tarjeta', 'Sin instalar nada'].map((item) => (
               <li key={item} className="flex items-center gap-1.5">
                 <Check className="h-4 w-4 text-primary-600" /> {item}
               </li>
@@ -238,12 +252,15 @@ export const Landing = () => {
         <div className="mx-auto max-w-6xl px-4">
           <h2 className="m-0 text-center text-warm-900 dark:text-white font-display text-3xl font-bold">Precios claros, sin sorpresas</h2>
           <p className="mt-3 text-center text-warm-600 dark:text-warm-300">
-            Empieza gratis. Pasa a Premium cuando tu agenda crezca.
+            Pruebas todo {TRIAL_DAYS} días gratis. Después eliges: sigues gratis o pasas a Premium.
           </p>
           <div className="mt-10 grid gap-5 md:grid-cols-3">
             <div className="flex flex-col rounded-2xl border border-warm-200 p-6 dark:border-warm-700">
               <h3 className="text-lg font-semibold">Gratis</h3>
               <p className="mt-2 text-3xl font-bold">$0</p>
+              <p className="mt-1 text-sm text-primary-700 dark:text-primary-300">
+                Los primeros {TRIAL_DAYS} días tienes todo Premium
+              </p>
               <ul className="mt-5 flex-1 space-y-2 text-sm text-warm-700 dark:text-warm-300">
                 <li className="flex gap-2"><Check className="h-4 w-4 flex-shrink-0 text-primary-600" />Hasta {FREE_CLIENT_LIMIT} clientes</li>
                 <li className="flex gap-2"><Check className="h-4 w-4 flex-shrink-0 text-primary-600" />Agenda de los próximos 7 días</li>
@@ -314,13 +331,25 @@ export const Landing = () => {
 
       {/* Cierre */}
       <section className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h2 className="m-0 text-warm-900 dark:text-white font-display text-3xl font-bold">Prueba Stetik hoy, gratis</h2>
+        <h2 className="m-0 text-warm-900 dark:text-white font-display text-3xl font-bold">Prueba Stetik {TRIAL_DAYS} días, gratis</h2>
         <p className="mt-3 text-warm-600 dark:text-warm-300">
-          En unos minutos tienes tu link de reservas listo para compartir.
+          Con todo incluido: recordatorios por WhatsApp y tu link de reservas listo para compartir. Sin tarjeta.
         </p>
-        <PrimaryCta className="mt-7" />
+        <PrimaryCta className="mt-7" place="cierre" />
       </section>
     </main>
+
+    {SUPPORT_WHATSAPP && (
+      <a
+        href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent('Hola, vi Stetik y tengo una pregunta')}`}
+        target="_blank"
+        rel="noreferrer"
+        onClick={() => trackCustomEvent('ContactWhatsApp')}
+        className="fixed bottom-4 right-4 z-20 flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-sm font-semibold text-white shadow-lg hover:brightness-95"
+      >
+        <MessageCircle className="h-5 w-5" /> ¿Dudas? Escríbenos
+      </a>
+    )}
 
     <footer className="border-t border-warm-200 px-4 py-8 text-center text-sm text-warm-600 dark:border-warm-800 dark:text-warm-400">
       <p className="flex items-center justify-center gap-2">

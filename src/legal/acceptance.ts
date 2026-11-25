@@ -1,6 +1,13 @@
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase/config';
 import { LEGAL_PRIVACY_VERSION, LEGAL_TERMS_VERSION } from './documents';
+
+// Functions se descarga al usarla: así la página de registro abre sin esperar ese código.
+const loadCallable = async <Req, Res>(name: string) => {
+  const [{ httpsCallable }, { functions }] = await Promise.all([
+    import('firebase/functions'),
+    import('../firebase/config')
+  ]);
+  return httpsCallable<Req, Res>(functions, name);
+};
 
 export type LegalAcceptanceMethod = 'email' | 'google' | 'in-app';
 
@@ -56,10 +63,7 @@ export const getLegalAcceptance = async (uid: string) => {
   if (pendingSignUp) await pendingSignUp.catch(() => {});
   if (hasCachedLegalAcceptance(uid)) return true;
 
-  const checkAcceptance = httpsCallable<void, LegalAcceptanceResponse>(
-    functions,
-    'getLegalAcceptance'
-  );
+  const checkAcceptance = await loadCallable<void, LegalAcceptanceResponse>('getLegalAcceptance');
   const { data } = await checkAcceptance();
   if (data.accepted) cacheLegalAcceptance(uid);
   return data.accepted;
@@ -70,7 +74,7 @@ export const recordLegalAcceptance = async (
   method: LegalAcceptanceMethod,
   confirmedAdult: boolean
 ) => {
-  const saveAcceptance = httpsCallable<
+  const saveAcceptance = await loadCallable<
     {
       termsVersion: string;
       privacyVersion: string;
@@ -79,7 +83,7 @@ export const recordLegalAcceptance = async (
       userAgent: string;
     },
     { recorded: boolean }
-  >(functions, 'recordLegalAcceptance');
+  >('recordLegalAcceptance');
 
   const { data } = await saveAcceptance({
     termsVersion: LEGAL_TERMS_VERSION,

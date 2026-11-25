@@ -79,6 +79,42 @@ export const recordLegalAcceptance = onCall(
   }
 );
 
+const TRIAL_DAYS = 7;
+
+// Prueba de 7 días con todo Premium (WhatsApp, link de reservas, sin límites).
+// Una sola vez por cuenta, nuevas y existentes. No aplica a quien ya tuvo una suscripción.
+// Al vencer, premiumUntil queda en el pasado y la cuenta sigue en el plan gratis.
+export const startTrial = onCall(
+  { region: 'us-central1' },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+    }
+
+    const userRef = db.doc(`users/${uid}`);
+    return db.runTransaction(async (tx) => {
+      const data = (await tx.get(userRef)).data() ?? {};
+      if (data.trialStartedAt) {
+        return { started: false, trialEndsAt: (data.trialEndsAt as Timestamp | undefined)?.toMillis() ?? null };
+      }
+      if (data.preapprovalId || data.subscriptionStatus) {
+        return { started: false, trialEndsAt: null };
+      }
+
+      const now = Date.now();
+      const trialEnd = now + TRIAL_DAYS * DAY_MS;
+      const currentUntil = (data.premiumUntil as Timestamp | undefined)?.toMillis() ?? 0;
+      tx.set(userRef, {
+        trialStartedAt: Timestamp.fromMillis(now),
+        trialEndsAt: Timestamp.fromMillis(trialEnd),
+        premiumUntil: Timestamp.fromMillis(Math.max(currentUntil, trialEnd))
+      }, { merge: true });
+      return { started: true, trialEndsAt: trialEnd };
+    });
+  }
+);
+
 const mpFetch = async (path: string, token: string, init?: RequestInit) => {
   const res = await fetch(`${MP_API}${path}`, {
     ...init,

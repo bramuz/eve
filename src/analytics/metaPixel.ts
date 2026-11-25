@@ -50,3 +50,10 @@ export const trackEvent = (event: string, params?: Record<string, unknown>) => {
   loadPixel();
   window.fbq?.('track', event, params);
 };
+
+// Eventos propios del embudo (ver registro, intento, error) para saber dónde se cae la gente.
+export const trackCustomEvent = (event: string, params?: Record<string, unknown>) => {
+  if (!isTrackedPath(window.location.pathname)) return;
+  loadPixel();
+  window.fbq?.('trackCustom', event, params);
+};

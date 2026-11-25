@@ -35,7 +35,7 @@ const PREMIUM_FEATURES = [
 ];
 
 export const Plans = () => {
-  const { isPremium, premiumUntil, subscriptionStatus } = usePlan();
+  const { isPremium, premiumUntil, subscriptionStatus, isTrial, trialEndsAt, trialDaysLeft } = usePlan();
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -45,7 +45,8 @@ export const Plans = () => {
   const [waitingTimedOut, setWaitingTimedOut] = useState(false);
   const waitingForPremium = returnedFromPayment && !isPremium && !waitingTimedOut;
   const canCancelSubscription = ['authorized', 'pending', 'paused'].includes(subscriptionStatus ?? '');
-  const canStartSubscription = !isPremium && (!subscriptionStatus || subscriptionStatus === 'cancelled');
+  // Durante la prueba también se puede pagar, para seguir con Premium sin cortes.
+  const canStartSubscription = (!isPremium || isTrial) && (!subscriptionStatus || subscriptionStatus === 'cancelled');
 
   useEffect(() => {
     if (!returnedFromPayment) return;
@@ -118,7 +119,19 @@ export const Plans = () => {
         </div>
       )}
 
-      {isPremium && premiumUntil && (
+      {isTrial && trialEndsAt && (
+        <div className="p-4 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-800 dark:text-primary-200 text-sm">
+          <p className="font-semibold">
+            Estás en tu prueba gratis de Premium: {trialDaysLeft === 1 ? 'te queda 1 día' : `te quedan ${trialDaysLeft} días`}.
+          </p>
+          <p className="mt-1">
+            Termina el {format(trialEndsAt, 'dd/MM/yyyy')}. Si no eliges un plan, sigues con el plan gratis y no pierdes
+            tus datos. Si eliges un plan, sigues con Premium sin interrupción.
+          </p>
+        </div>
+      )}
+
+      {isPremium && !isTrial && premiumUntil && (
         <div className="p-4 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 text-sm">
           Tienes el plan Premium activo hasta el {format(premiumUntil, 'dd/MM/yyyy')}.
         </div>
@@ -161,7 +174,7 @@ export const Plans = () => {
           ))}
         </ul>
         <div className="mt-6 flex h-12 w-full items-center justify-center rounded-2xl border-2 border-warm-200 dark:border-warm-700 text-sm font-semibold text-warm-600 dark:text-warm-300">
-          {isPremium ? 'Plan básico' : 'Tu plan actual'}
+          {isPremium ? (isTrial ? 'Al terminar la prueba' : 'Plan básico') : 'Tu plan actual'}
         </div>
       </div>
 

@@ -155,10 +155,10 @@ export const LegalAcceptanceGate = ({ children }: LegalAcceptanceGateProps) => {
     <main className="flex min-h-screen items-center justify-center bg-warm-50 p-4 dark:bg-warm-900">
       <section className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-sm dark:bg-warm-800">
         <h1 className="text-2xl font-bold text-warm-900 dark:text-white">
-          Actualizamos nuestros documentos
+          Un último paso
         </h1>
         <p className="mt-3 text-sm leading-6 text-warm-700 dark:text-warm-200">
-          Para continuar, revisa y acepta los documentos vigentes. La Política explica el
+          Para continuar, revisa y acepta los documentos de Stetik. La Política explica el
           tratamiento de datos; los Términos incluyen las condiciones de uso y suscripción.
         </p>
         <label className="mt-5 flex items-start gap-3 text-sm text-warm-800 dark:text-warm-100">

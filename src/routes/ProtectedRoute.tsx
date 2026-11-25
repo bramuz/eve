@@ -1,8 +1,12 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { type ReactNode } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { Loading } from '../components/ui/Loading';
-import { LegalAcceptanceGate } from '../components/LegalAcceptanceGate';
+
+// Solo hace falta con sesión iniciada: así la página pública no descarga su código.
+const LegalAcceptanceGate = lazy(() =>
+  import('../components/LegalAcceptanceGate').then((m) => ({ default: m.LegalAcceptanceGate }))
+);
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -19,7 +23,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/login" replace />;
   }
 
-  return <LegalAcceptanceGate>{children}</LegalAcceptanceGate>;
+  return (
+    <Suspense fallback={<Loading />}>
+      <LegalAcceptanceGate>{children}</LegalAcceptanceGate>
+    </Suspense>
+  );
 };
 
 export const PublicRoute = ({ children }: ProtectedRouteProps) => {

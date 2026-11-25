@@ -21,6 +21,8 @@ import { useAuth } from '../../context/AuthContext';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { MessageCircle } from 'lucide-react';
+import { paymentReminderText, whatsAppLink } from '../../utils/whatsapp';
 
 interface ClientDetailsProps {
   client: Client;
@@ -363,6 +365,23 @@ export const ClientDetails = ({ client, onClose, onUpdate }: ClientDetailsProps)
             </p>
           </Card>
         </div>
+
+        {(() => {
+          const debtLink = totalPending > 0
+            ? whatsAppLink(client.phone, paymentReminderText(client.name, totalPending, currentUser?.displayName))
+            : null;
+          return debtLink ? (
+            <a
+              href={debtLink}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Cobrar ${totalPending.toLocaleString()} por WhatsApp
+            </a>
+          ) : null;
+        })()}
 
         <div className="flex gap-2 mt-4 flex-wrap">
           <Button

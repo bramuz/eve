@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import type { User } from 'firebase/auth';
-import { auth } from '../firebase/config';
+import { auth } from '../firebase/app';
 import { 
   signInWithEmail, 
   signUpWithEmail, 
