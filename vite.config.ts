@@ -16,7 +16,13 @@ export default defineConfig({
         // así el navegador las reutiliza desde caché y solo descarga el código de la app
         codeSplitting: {
           groups: [
-            { name: 'vendor-firebase', test: /node_modules[\\/](firebase|@firebase)[\\/]/ },
+            // Inicio de sesión aparte: es lo único de Firebase que necesita la página pública.
+            {
+              name: 'vendor-firebase-auth',
+              test: /node_modules[\\/](firebase[\\/](app|auth)|@firebase[\\/](app|auth|util|component|logger)|idb)[\\/]/,
+              priority: 2
+            },
+            { name: 'vendor-firebase', test: /node_modules[\\/](firebase|@firebase)[\\/]/, priority: 1 },
             { name: 'vendor-react', test: /node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/ },
             { name: 'vendor-motion', test: /node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/ }
           ]

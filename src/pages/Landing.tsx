@@ -21,7 +21,7 @@ import {
   SEMIANNUAL_SAVINGS_LABEL,
   SEMIANNUAL_TOTAL_LABEL
 } from '../config/plans';
-import { SUPPORT_EMAIL } from '../config/support';
+import { SUPPORT_EMAIL, SUPPORT_WHATSAPP } from '../config/support';
 import { LegalFooter } from '../components/layout/LegalFooter';
 import { useAuth } from '../context/AuthContext';
 import { trackCustomEvent } from '../analytics/metaPixel';
@@ -330,6 +330,18 @@ export const Landing = () => {
         <PrimaryCta className="mt-7" place="cierre" />
       </section>
     </main>
+
+    {SUPPORT_WHATSAPP && (
+      <a
+        href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent('Hola, vi Stetik y tengo una pregunta')}`}
+        target="_blank"
+        rel="noreferrer"
+        onClick={() => trackCustomEvent('ContactWhatsApp')}
+        className="fixed bottom-4 right-4 z-20 flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-sm font-semibold text-white shadow-lg hover:brightness-95"
+      >
+        <MessageCircle className="h-5 w-5" /> ¿Dudas? Escríbenos
+      </a>
+    )}
 
     <footer className="border-t border-warm-200 px-4 py-8 text-center text-sm text-warm-600 dark:border-warm-800 dark:text-warm-400">
       <p className="flex items-center justify-center gap-2">

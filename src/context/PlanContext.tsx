@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { doc, onSnapshot, Timestamp } from 'firebase/firestore';
+import type { Timestamp } from 'firebase/firestore';
 import { addDays, endOfDay } from 'date-fns';
-import { db } from '../firebase/config';
 import { useAuth } from './AuthContext';
 import { FREE_CLIENT_LIMIT } from '../config/plans';
 
@@ -40,23 +39,36 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setLoading(true);
-    const unsubscribe = onSnapshot(
-      doc(db, 'users', currentUser.uid),
-      (snap) => {
-        const until = snap.data()?.premiumUntil as Timestamp | undefined;
-        const status = snap.data()?.subscriptionStatus;
-        setPremiumUntil(until ? until.toDate() : null);
-        setSubscriptionStatus(typeof status === 'string' ? status : null);
-        setLoading(false);
-      },
-      () => {
-        setPremiumUntil(null);
-        setSubscriptionStatus(null);
-        setLoading(false);
-      }
-    );
+    // Firestore se descarga solo con sesión iniciada: la página pública no lo necesita.
+    let active = true;
+    let unsubscribe: (() => void) | null = null;
+    Promise.all([import('firebase/firestore'), import('../firebase/config')])
+      .then(([{ doc, onSnapshot }, { db }]) => {
+        if (!active) return;
+        unsubscribe = onSnapshot(
+          doc(db, 'users', currentUser.uid),
+          (snap) => {
+            const until = snap.data()?.premiumUntil as Timestamp | undefined;
+            const status = snap.data()?.subscriptionStatus;
+            setPremiumUntil(until ? until.toDate() : null);
+            setSubscriptionStatus(typeof status === 'string' ? status : null);
+            setLoading(false);
+          },
+          () => {
+            setPremiumUntil(null);
+            setSubscriptionStatus(null);
+            setLoading(false);
+          }
+        );
+      })
+      .catch(() => {
+        if (active) setLoading(false);
+      });
 
-    return unsubscribe;
+    return () => {
+      active = false;
+      unsubscribe?.();
+    };
   }, [currentUser]);
 
   const value = useMemo<PlanContextType>(() => {

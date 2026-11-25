@@ -20,6 +20,9 @@ import type { Appointment, ClientPayment, ClientService } from '../types';
 import { endOfDay, endOfMonth, format, isThisMonth, isToday, startOfDay, startOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { OnboardingChecklist } from '../components/dashboard/OnboardingChecklist';
+import { ReminderLink } from '../components/appointments/ReminderLink';
+import { InstallAppCard } from '../components/dashboard/InstallAppCard';
 
 const toDateSafe = (value: unknown): Date | null => {
   if (!value) return null;
@@ -256,6 +259,9 @@ export const Dashboard = () => {
           </p>
         </div>
 
+        {currentUser && <OnboardingChecklist uid={currentUser.uid} totalClients={stats.totalClients} />}
+        <InstallAppCard />
+
         {/* Stats Cards */}
         <div className="grid grid-cols-2 gap-3">
           <Card 
@@ -363,6 +369,9 @@ export const Dashboard = () => {
                           {apt.paymentStatus === 'abonado' ? 'Abonado' :
                            apt.paymentStatus === 'parcial' ? 'Parcial' : 'Pendiente'}
                         </Badge>
+                      </div>
+                      <div className="mt-2">
+                        <ReminderLink apt={apt} professionalName={displayName} withLabel />
                       </div>
                     </div>
                     {apt.price > 0 && (

@@ -8,7 +8,7 @@ import {
   updateProfile
 } from 'firebase/auth';
 import type { User } from 'firebase/auth';
-import { auth } from './config';
+import { auth } from './app';
 
 // Sign up with email and password
 export const signUpWithEmail = async (

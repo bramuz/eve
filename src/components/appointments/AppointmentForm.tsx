@@ -44,7 +44,8 @@ export const AppointmentForm = ({
   specialDays = []
 }: AppointmentFormProps) => {
   const { currentUser } = useAuth();
-  const { canScheduleOn } = usePlan();
+  const { canScheduleOn, canAddClient } = usePlan();
+  const [saveAsClient, setSaveAsClient] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedDateWarning, setSelectedDateWarning] = useState<SpecialDay | null>(null);
@@ -122,6 +123,30 @@ export const AppointmentForm = ({
   };
 
   const nameField = register('clientName', { required: 'El nombre del usuario es requerido' });
+
+  // Nombre nuevo al crear la cita: se ofrece guardarlo para no escribirlo la próxima vez.
+  const typedName = watchedName.trim();
+  const isNewName =
+    !appointment &&
+    !selectedClientId &&
+    typedName.length >= 2 &&
+    !clients.some((client) => normalize(client.name) === normalize(typedName));
+  const canSaveClient = canAddClient(clients.length);
+
+  const createClientFromForm = async (name: string, phone: string) => {
+    if (!currentUser) return null;
+    const { id, error } = await createDocument('clients', {
+      name,
+      ...(phone ? { phone } : {}),
+      userId: currentUser.uid
+    });
+    if (error || !id) {
+      console.warn('No se pudo guardar el usuario desde la cita:', error);
+      toast.warning('La cita se guardará, pero no se pudo guardar el usuario.');
+      return null;
+    }
+    return id;
+  };
   const outsideFreeWeek = !!watchedDate && !canScheduleOn(new Date(`${watchedDate}T00:00:00`));
 
   useEffect(() => {
@@ -158,11 +183,16 @@ export const AppointmentForm = ({
     console.log('Iniciando guardado de cita...');
 
     try {
+      let clientId = selectedClientId;
+      if (!clientId && isNewName && saveAsClient && canSaveClient) {
+        clientId = await createClientFromForm(data.clientName.trim(), (data.clientPhone ?? '').trim());
+      }
+
       const appointmentData = {
         clientName: data.clientName,
         clientPhone: (data.clientPhone ?? '').trim(),
         whatsappConsent: !!data.whatsappConsent && !!(data.clientPhone ?? '').trim(),
-        clientId: selectedClientId,
+        clientId,
         service: data.service,
         date: Timestamp.fromDate(new Date(`${data.date}T00:00:00`)),
         dateKey: data.date,
@@ -355,6 +385,25 @@ export const AppointmentForm = ({
         {...register('clientPhone')}
         className="h-12 text-base"
       />
+
+      {isNewName && (
+        canSaveClient ? (
+          <label className="flex items-start gap-2 text-sm text-warm-700 dark:text-warm-300">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={saveAsClient}
+              onChange={(e) => setSaveAsClient(e.target.checked)}
+            />
+            <span>Guardar a <strong>{typedName}</strong> en mis usuarios para elegirlo la próxima vez</span>
+          </label>
+        ) : (
+          <p className="text-xs text-warm-500 dark:text-warm-400">
+            Llegaste al límite de usuarios del plan gratis, así que este nombre no se guardará.{' '}
+            <Link to="/plans" className="font-semibold underline">Ver Premium</Link>
+          </p>
+        )
+      )}
 
       <label className="flex items-start gap-2 text-sm text-warm-700 dark:text-warm-300">
         <input type="checkbox" className="mt-1" {...register('whatsappConsent')} />
