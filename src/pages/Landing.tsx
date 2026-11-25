@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import {
   FREE_CLIENT_LIMIT,
+  TRIAL_DAYS,
   PREMIUM_PRICE_LABEL,
   SEMIANNUAL_MONTHLY_LABEL,
   SEMIANNUAL_SAVINGS_LABEL,
@@ -60,7 +61,7 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { title: 'Crea tu cuenta gratis', text: 'Con tu correo, en menos de un minuto.' },
+  { title: 'Crea tu cuenta gratis', text: `Con tu correo, en menos de un minuto. Tienes ${TRIAL_DAYS} días con todo Premium.` },
   { title: 'Configura tus horarios', text: 'Dinos qué días y horas atiendes.' },
   { title: 'Comparte tu link', text: 'Tus clientes eligen su hora y tú recibes el aviso.' }
 ];
@@ -75,7 +76,11 @@ const TRUST = [
 const FAQ = [
   {
     q: '¿Tengo que pagar para empezar?',
-    a: `No. El plan gratis no pide tarjeta y te deja manejar hasta ${FREE_CLIENT_LIMIT} clientes. Pasas a Premium solo si lo necesitas.`
+    a: `No. Al crear tu cuenta tienes ${TRIAL_DAYS} días con todo Premium (WhatsApp, link de reservas, sin límites) y no te pedimos tarjeta. Si no pagas, sigues con el plan gratis: hasta ${FREE_CLIENT_LIMIT} clientes y agenda de 7 días.`
+  },
+  {
+    q: `¿Qué pasa cuando terminan los ${TRIAL_DAYS} días?`,
+    a: 'Nada se borra. Sigues entrando con el plan gratis, y cuando quieras activas Premium desde la app con Mercado Pago. No hay cobros automáticos al terminar la prueba.'
   },
   {
     q: '¿Mis clientes tienen que descargar algo?',
@@ -102,7 +107,7 @@ const PrimaryCta = ({ className = '', place }: { className?: string; place: stri
     onClick={() => trackSignUpClick(place)}
     className={`inline-flex items-center justify-center rounded-2xl bg-primary-600 px-6 py-3.5 text-base font-semibold text-white shadow-glow transition-colors hover:bg-primary-700 ${className}`}
   >
-    Crear mi cuenta gratis
+    Probar {TRIAL_DAYS} días gratis
   </Link>
 );
 
@@ -193,7 +198,7 @@ export const Landing = () => {
             </Link>
           </div>
           <ul className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-warm-600 dark:text-warm-300 md:justify-start">
-            {['Gratis para empezar', 'Sin tarjeta', 'Sin instalar nada'].map((item) => (
+            {[`${TRIAL_DAYS} días con todo incluido`, 'Sin tarjeta', 'Sin instalar nada'].map((item) => (
               <li key={item} className="flex items-center gap-1.5">
                 <Check className="h-4 w-4 text-primary-600" /> {item}
               </li>
@@ -247,12 +252,15 @@ export const Landing = () => {
         <div className="mx-auto max-w-6xl px-4">
           <h2 className="m-0 text-center text-warm-900 dark:text-white font-display text-3xl font-bold">Precios claros, sin sorpresas</h2>
           <p className="mt-3 text-center text-warm-600 dark:text-warm-300">
-            Empieza gratis. Pasa a Premium cuando tu agenda crezca.
+            Pruebas todo {TRIAL_DAYS} días gratis. Después eliges: sigues gratis o pasas a Premium.
           </p>
           <div className="mt-10 grid gap-5 md:grid-cols-3">
             <div className="flex flex-col rounded-2xl border border-warm-200 p-6 dark:border-warm-700">
               <h3 className="text-lg font-semibold">Gratis</h3>
               <p className="mt-2 text-3xl font-bold">$0</p>
+              <p className="mt-1 text-sm text-primary-700 dark:text-primary-300">
+                Los primeros {TRIAL_DAYS} días tienes todo Premium
+              </p>
               <ul className="mt-5 flex-1 space-y-2 text-sm text-warm-700 dark:text-warm-300">
                 <li className="flex gap-2"><Check className="h-4 w-4 flex-shrink-0 text-primary-600" />Hasta {FREE_CLIENT_LIMIT} clientes</li>
                 <li className="flex gap-2"><Check className="h-4 w-4 flex-shrink-0 text-primary-600" />Agenda de los próximos 7 días</li>
@@ -323,9 +331,9 @@ export const Landing = () => {
 
       {/* Cierre */}
       <section className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h2 className="m-0 text-warm-900 dark:text-white font-display text-3xl font-bold">Prueba Stetik hoy, gratis</h2>
+        <h2 className="m-0 text-warm-900 dark:text-white font-display text-3xl font-bold">Prueba Stetik {TRIAL_DAYS} días, gratis</h2>
         <p className="mt-3 text-warm-600 dark:text-warm-300">
-          En unos minutos tienes tu link de reservas listo para compartir.
+          Con todo incluido: recordatorios por WhatsApp y tu link de reservas listo para compartir. Sin tarjeta.
         </p>
         <PrimaryCta className="mt-7" place="cierre" />
       </section>

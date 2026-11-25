@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import { OnboardingChecklist } from '../components/dashboard/OnboardingChecklist';
 import { ReminderLink } from '../components/appointments/ReminderLink';
 import { InstallAppCard } from '../components/dashboard/InstallAppCard';
+import { TrialBanner } from '../components/dashboard/TrialBanner';
 
 const toDateSafe = (value: unknown): Date | null => {
   if (!value) return null;
@@ -259,6 +260,7 @@ export const Dashboard = () => {
           </p>
         </div>
 
+        <TrialBanner />
         {currentUser && <OnboardingChecklist uid={currentUser.uid} totalClients={stats.totalClients} />}
         <InstallAppCard />
 

@@ -10,6 +10,7 @@ import { LegalFooter } from '../components/layout/LegalFooter';
 import { GoogleSignInButton } from '../components/auth/GoogleSignInButton';
 import { recordLegalAcceptance, trackSignUp } from '../legal/acceptance';
 import { trackCustomEvent, trackEvent } from '../analytics/metaPixel';
+import { TRIAL_DAYS } from '../config/plans';
 
 interface RegisterForm {
   name: string;
@@ -133,7 +134,7 @@ export const Register = () => {
             Stetik
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Crea tu cuenta gratis en menos de un minuto. Sin tarjeta.
+            {TRIAL_DAYS} días con todo Premium gratis. Sin tarjeta.
           </p>
         </div>
 
