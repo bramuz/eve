@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import {
   Bell,
@@ -23,7 +24,7 @@ import {
 import { SUPPORT_EMAIL } from '../config/support';
 import { LegalFooter } from '../components/layout/LegalFooter';
 import { useAuth } from '../context/AuthContext';
-import { OpenInBrowserBanner } from '../components/auth/OpenInBrowserBanner';
+import { trackCustomEvent } from '../analytics/metaPixel';
 
 const FEATURES = [
   {
@@ -90,9 +91,15 @@ const FAQ = [
   }
 ];
 
-const PrimaryCta = ({ className = '' }: { className?: string }) => (
+const trackSignUpClick = (place: string) => trackCustomEvent('ClickSignUp', { place });
+
+// El registro se carga aparte: se descarga en segundo plano para que abra al instante.
+const preloadRegister = () => void import('./Register');
+
+const PrimaryCta = ({ className = '', place }: { className?: string; place: string }) => (
   <Link
     to="/register"
+    onClick={() => trackSignUpClick(place)}
     className={`inline-flex items-center justify-center rounded-2xl bg-primary-600 px-6 py-3.5 text-base font-semibold text-white shadow-glow transition-colors hover:bg-primary-700 ${className}`}
   >
     Crear mi cuenta gratis
@@ -130,6 +137,10 @@ const WhatsAppPreview = () => (
 export const Landing = () => {
   // No espera a Firebase: la página se ve al instante y, si hay sesión, va al panel.
   const { currentUser } = useAuth();
+  useEffect(() => {
+    const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1500));
+    idle(preloadRegister);
+  }, []);
   if (currentUser) return <Navigate to="/dashboard" replace />;
 
   return (
@@ -149,6 +160,7 @@ export const Landing = () => {
           </Link>
           <Link
             to="/register"
+            onClick={() => trackSignUpClick('header')}
             className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
           >
             Empezar gratis
@@ -158,9 +170,6 @@ export const Landing = () => {
     </header>
 
     <main>
-      <div className="mx-auto max-w-6xl px-4 pt-4">
-        <OpenInBrowserBanner />
-      </div>
       {/* Hero */}
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 md:grid-cols-2 md:py-20">
         <div className="text-center md:text-left">
@@ -175,7 +184,7 @@ export const Landing = () => {
             la confirmación y el recordatorio por WhatsApp.
           </p>
           <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row md:justify-start">
-            <PrimaryCta className="w-full sm:w-auto" />
+            <PrimaryCta className="w-full sm:w-auto" place="hero" />
             <Link
               to="/login"
               className="text-sm font-medium text-warm-600 underline-offset-4 hover:underline dark:text-warm-300"
@@ -318,7 +327,7 @@ export const Landing = () => {
         <p className="mt-3 text-warm-600 dark:text-warm-300">
           En unos minutos tienes tu link de reservas listo para compartir.
         </p>
-        <PrimaryCta className="mt-7" />
+        <PrimaryCta className="mt-7" place="cierre" />
       </section>
     </main>
 

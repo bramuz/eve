@@ -1,16 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { where } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
 import { usePlan } from '../../context/PlanContext';
 import { Link } from 'react-router-dom';
-import { createDocument, updateDocument, Timestamp } from '../../firebase/firestore';
+import { createDocument, getDocuments, updateDocument, Timestamp } from '../../firebase/firestore';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Alert } from '../ui/Alert';
-import type { Appointment, SpecialDay } from '../../types';
+import type { Appointment, Client, SpecialDay } from '../../types';
 import { toast } from 'sonner';
 import { format, isSameDay } from 'date-fns';
-import { AlertTriangle, Tag } from 'lucide-react';
+import { AlertTriangle, Search, Tag, UserCheck, X } from 'lucide-react';
+
+// Para buscar sin importar tildes ni mayúsculas: "Maria" encuentra "María".
+const normalize = (text: string) =>
+  text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+const digitsOnly = (text: string) => text.replace(/\D/g, '');
+const MAX_SUGGESTIONS = 6;
 
 interface AppointmentFormProps {
   appointment?: Appointment | null;
@@ -41,11 +48,16 @@ export const AppointmentForm = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedDateWarning, setSelectedDateWarning] = useState<SpecialDay | null>(null);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(appointment?.clientId ?? null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [highlighted, setHighlighted] = useState(0);
 
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors }
   } = useForm<FormData>({
     defaultValues: appointment
@@ -63,6 +75,53 @@ export const AppointmentForm = ({
   });
 
   const watchedDate = watch('date');
+  const watchedName = watch('clientName') ?? '';
+
+  // Usuarios guardados del profesional, para elegirlos al escribir el nombre o el celular.
+  useEffect(() => {
+    if (!currentUser) return;
+    let active = true;
+    getDocuments('clients', [where('userId', '==', currentUser.uid)]).then(({ data }) => {
+      if (active && data) setClients(data as Client[]);
+    });
+    return () => {
+      active = false;
+    };
+  }, [currentUser]);
+
+  const suggestions = useMemo(() => {
+    const term = normalize(watchedName);
+    if (!term) return [];
+    const termDigits = digitsOnly(watchedName);
+    const words = term.split(/\s+/);
+    return clients
+      .filter((client) => {
+        const name = normalize(client.name);
+        const byName = words.every((word) => name.includes(word));
+        const byPhone = termDigits.length >= 3 && digitsOnly(client.phone ?? '').includes(termDigits);
+        return byName || byPhone;
+      })
+      // Primero los que empiezan con lo escrito.
+      .sort((a, b) => Number(normalize(b.name).startsWith(term)) - Number(normalize(a.name).startsWith(term)))
+      .slice(0, MAX_SUGGESTIONS);
+  }, [clients, watchedName]);
+
+  const selectedClient = clients.find((client) => client.id === selectedClientId) ?? null;
+
+  const chooseClient = (client: Client) => {
+    setValue('clientName', client.name, { shouldValidate: true });
+    if (client.phone) setValue('clientPhone', client.phone);
+    setSelectedClientId(client.id);
+    setShowSuggestions(false);
+  };
+
+  const clearClient = () => {
+    setSelectedClientId(null);
+    setValue('clientName', '');
+    setValue('clientPhone', '');
+  };
+
+  const nameField = register('clientName', { required: 'El nombre del usuario es requerido' });
   const outsideFreeWeek = !!watchedDate && !canScheduleOn(new Date(`${watchedDate}T00:00:00`));
 
   useEffect(() => {
@@ -103,6 +162,7 @@ export const AppointmentForm = ({
         clientName: data.clientName,
         clientPhone: (data.clientPhone ?? '').trim(),
         whatsappConsent: !!data.whatsappConsent && !!(data.clientPhone ?? '').trim(),
+        clientId: selectedClientId,
         service: data.service,
         date: Timestamp.fromDate(new Date(`${data.date}T00:00:00`)),
         dateKey: data.date,
@@ -207,13 +267,86 @@ export const AppointmentForm = ({
         </div>
       )}
 
-      <Input
-        label="Nombre del Usuario"
-        placeholder="Ej: Juan Pérez"
-        error={errors.clientName?.message}
-        {...register('clientName', { required: 'El nombre del usuario es requerido' })}
-        className="h-12 text-base"
-      />
+      <div className="relative">
+        <Input
+          label="Nombre del Usuario"
+          placeholder={clients.length > 0 ? 'Escribe el nombre o el celular' : 'Ej: Juan Pérez'}
+          autoComplete="off"
+          icon={clients.length > 0 ? <Search className="w-5 h-5" /> : undefined}
+          error={errors.clientName?.message}
+          {...nameField}
+          onChange={(event) => {
+            void nameField.onChange(event);
+            setSelectedClientId(null);
+            setShowSuggestions(true);
+            setHighlighted(0);
+          }}
+          onFocus={() => setShowSuggestions(true)}
+          onBlur={(event) => {
+            void nameField.onBlur(event);
+            setShowSuggestions(false);
+          }}
+          onKeyDown={(event) => {
+            if (!showSuggestions || suggestions.length === 0) return;
+            if (event.key === 'ArrowDown') {
+              event.preventDefault();
+              setHighlighted((i) => (i + 1) % suggestions.length);
+            } else if (event.key === 'ArrowUp') {
+              event.preventDefault();
+              setHighlighted((i) => (i - 1 + suggestions.length) % suggestions.length);
+            } else if (event.key === 'Enter') {
+              event.preventDefault();
+              chooseClient(suggestions[highlighted]);
+            } else if (event.key === 'Escape') {
+              setShowSuggestions(false);
+            }
+          }}
+          className="h-12 text-base"
+        />
+
+        {showSuggestions && !selectedClient && suggestions.length > 0 && (
+          <ul
+            role="listbox"
+            className="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-xl border border-warm-200 bg-white shadow-lg dark:border-warm-700 dark:bg-warm-800"
+          >
+            {suggestions.map((client, index) => (
+              <li key={client.id} role="option" aria-selected={index === highlighted}>
+                <button
+                  type="button"
+                  // mousedown para que el campo no pierda el foco antes de elegir
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                    chooseClient(client);
+                  }}
+                  className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left ${
+                    index === highlighted ? 'bg-primary-50 dark:bg-primary-900/30' : ''
+                  } hover:bg-primary-50 dark:hover:bg-primary-900/30`}
+                >
+                  <span className="font-medium text-warm-900 dark:text-white">{client.name}</span>
+                  {client.phone && (
+                    <span className="text-sm text-warm-500 dark:text-warm-400">{client.phone}</span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {selectedClient && (
+          <div className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-primary-50 px-3 py-2 text-sm text-primary-800 dark:bg-primary-900/30 dark:text-primary-200">
+            <span className="flex items-center gap-2">
+              <UserCheck className="h-4 w-4" /> Usuario guardado
+            </span>
+            <button
+              type="button"
+              onClick={clearClient}
+              className="flex items-center gap-1 font-medium hover:underline"
+            >
+              <X className="h-4 w-4" /> Cambiar
+            </button>
+          </div>
+        )}
+      </div>
 
       <Input
         label="Teléfono (opcional)"

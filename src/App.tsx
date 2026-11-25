@@ -11,13 +11,14 @@ import { Analytics } from '@vercel/analytics/react';
 import { trackPageView } from './analytics/metaPixel';
 
 // Auth Pages
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
-import { ForgotPassword } from './pages/ForgotPassword';
 import { Landing } from './pages/Landing';
+// Todo lo demás se carga por partes: la página de la campaña (/) abre con lo mínimo.
+const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
+const Register = lazy(() => import('./pages/Register').then((m) => ({ default: m.Register })));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword })));
 
 // App Pages
-import { Dashboard } from './pages/Dashboard';
+const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const IncomeDashboard = lazy(() => import('./pages/IncomeDashboard.tsx').then((m) => ({ default: m.IncomeDashboard })));
 const Appointments = lazy(() => import('./pages/Appointments').then((m) => ({ default: m.Appointments })));
 const Clients = lazy(() => import('./pages/Clients').then((m) => ({ default: m.Clients })));
